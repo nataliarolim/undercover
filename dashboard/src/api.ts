@@ -95,6 +95,20 @@ export interface Instructions {
 
 export const POLL_MS = 2000;
 
+const API = "/api";
+
+/** Every path the dashboard calls on the backend. */
+export const paths = {
+  claims: `${API}/claims`,
+  claim: (claimId: string) => `${API}/claims/${claimId}`,
+  steps: (claimId: string) => `${API}/claims/${claimId}/steps`,
+  signOff: (claimId: string) => `${API}/claims/${claimId}/sign-off`,
+  policy: (policyId: string) => `${API}/policies/${policyId}`,
+  history: (customerId: string) => `${API}/customers/${customerId}/history`,
+  handlers: `${API}/handlers`,
+  instructions: `${API}/instructions`,
+};
+
 async function read<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const { detail } = (await response.json()) as { detail: string };

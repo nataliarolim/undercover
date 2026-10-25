@@ -1,9 +1,9 @@
-import { STATUSES, useApi, type ClaimSummary } from "./api";
+import { STATUSES, paths, useApi, type ClaimSummary } from "./api";
 import { DecisionBadge, StatusBadge } from "./Badge";
 import { dollars, label } from "./format";
 
 export function QueuePage() {
-  const { data: claims, error } = useApi<ClaimSummary[]>("/api/claims", true);
+  const { data: claims, error } = useApi<ClaimSummary[]>(paths.claims, true);
 
   if (error) return <p role="alert">{error}</p>;
   if (!claims) return <p>Loading the queue</p>;

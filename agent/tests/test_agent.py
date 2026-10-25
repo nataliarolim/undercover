@@ -1,6 +1,6 @@
 from langchain_core.messages import AIMessage, SystemMessage
 
-from agent import main
+from agent import harness, tools
 from agent.tests.conftest import calls, stub
 
 DECISION = {"rationale": "Covered.", "policy_section": "Section 3, Trip Delay"}
@@ -17,7 +17,7 @@ def test_approval_within_the_limit_is_paid(api):
         calls(("pay_claim", {"amount": 420})),
         AIMessage(content="Approved and paid $420.00."),
     )
-    assert main.run("CLM-1001", "thread-1", llm) == "Approved and paid $420.00."
+    assert tools.run_claim("CLM-1001", "thread-1", llm) == "Approved and paid $420.00."
 
     claim = api.get("/api/claims/CLM-1001").json()
     assert claim["status"] == "decided"
@@ -44,7 +44,7 @@ def test_payment_over_the_limit_is_refused(api):
         calls(("pay_claim", {"amount": 3750})),
         AIMessage(content="Approved; the payment waits for sign-off."),
     )
-    main.run("CLM-1003", "thread-1", llm)
+    tools.run_claim("CLM-1003", "thread-1", llm)
 
     claim = api.get("/api/claims/CLM-1003").json()
     assert claim["status"] == "waiting_for_sign_off"
@@ -56,14 +56,14 @@ def test_payment_over_the_limit_is_refused(api):
 
 def test_system_prompt_comes_from_the_api(api):
     llm = stub(AIMessage(content="Done."))
-    main.run("CLM-1001", "thread-1", llm)
+    tools.run_claim("CLM-1001", "thread-1", llm)
     system = llm.prompts[0][0]
     assert isinstance(system, SystemMessage)
     assert system.content == api.get("/api/instructions").json()["instructions"]
 
 
 def test_the_agent_has_five_tools_and_none_signs_off():
-    assert [tool.name for tool in main.make_tools("CLM-1001")] == [
+    assert [tool.name for tool in tools.CLAIM_TOOLS] == [
         "get_claim",
         "get_policy",
         "get_claim_history",
@@ -77,12 +77,21 @@ def test_a_reply_with_text_and_tool_calls_makes_both_steps():
         content="Let me read it.",
         tool_calls=[{"name": "get_claim", "args": {}, "id": "1"}],
     )
-    assert [step["kind"] for step in main.steps(message)] == ["message", "tool_call"]
+    assert [step["kind"] for step in harness.steps(message)] == ["message", "tool_call"]
 
 
 def test_model_name(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
     monkeypatch.delenv("MODEL_NAME", raising=False)
-    assert main.model().model_name == "openai/gpt-6-luna"
+    default = harness.model()
+    assert default.model_name == "deepseek/deepseek-v4.1-flash"
+    assert default.reasoning_effort == "low"
     monkeypatch.setenv("MODEL_NAME", "openrouter/free")
-    assert main.model().model_name == "openrouter/free"
+    chosen = harness.model()
+    assert chosen.model_name == "openrouter/free"
+    assert chosen.reasoning_effort is None
+
+
+def test_no_claim_tool_takes_the_claim_id():
+    for tool in tools.CLAIM_TOOLS:
+        assert not {"claim_id", "run_id"} & tool.args.keys(), tool.name

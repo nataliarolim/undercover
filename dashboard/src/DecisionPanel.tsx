@@ -1,5 +1,5 @@
 import { useState, type SubmitEvent } from "react";
-import { postJson, useApi, type Claim, type Handler } from "./api";
+import { paths, postJson, useApi, type Claim, type Handler } from "./api";
 import { DecisionBadge } from "./Badge";
 import { dollars } from "./format";
 
@@ -19,7 +19,7 @@ function SignOff({
 
   const submit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
-    postJson(`/api/claims/${claim.claim_id}/sign-off`, {
+    postJson(paths.signOff(claim.claim_id), {
       handler_id: handlerId,
     }).then(onSignedOff, (failure: unknown) => {
       setError((failure as Error).message);
@@ -78,7 +78,7 @@ export function DecisionPanel({
   claim,
   onChange,
 }: Readonly<{ claim: Claim; onChange: () => void }>) {
-  const { data: handlers = [] } = useApi<Handler[]>("/api/handlers");
+  const { data: handlers = [] } = useApi<Handler[]>(paths.handlers);
 
   if (claim.decision === null) {
     return (

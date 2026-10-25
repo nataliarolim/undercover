@@ -4,14 +4,9 @@ import sys
 import uuid
 from typing import Any
 
-import agent.main
+from dotenv import load_dotenv
 
-
-def waiting_claims() -> list[str]:
-    """Return the ids of the claims waiting in the queue."""
-    with agent.main.backend() as client:
-        claims = client.get("/api/claims").raise_for_status().json()
-    return [claim["claim_id"] for claim in claims if claim["status"] == "waiting"]
+from agent import api, harness, tools
 
 
 def outcome(claim: dict[str, Any]) -> str:
@@ -26,11 +21,12 @@ def outcome(claim: dict[str, Any]) -> str:
 
 def main(claim_ids: list[str]) -> None:
     """Run the agent on the named claims, or on every waiting claim."""
-    for claim_id in claim_ids or waiting_claims():
-        agent.main.run(claim_id, str(uuid.uuid4()))
-        with agent.main.backend() as client:
-            claim = client.get(f"/api/claims/{claim_id}").raise_for_status().json()
-        print(outcome(claim), flush=True)
+    load_dotenv(override=True)
+    llm = harness.model()
+    waiting = [c["claim_id"] for c in api.list_claims() if c["status"] == "waiting"]
+    for claim_id in claim_ids or waiting:
+        tools.run_claim(claim_id, str(uuid.uuid4()), llm)
+        print(outcome(api.get_claim(claim_id)), flush=True)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,9 @@ import os
 import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Annotated
+
+from fastapi import Depends, HTTPException, status
 
 SCHEMA = """
 DROP TABLE IF EXISTS steps;
@@ -58,3 +61,22 @@ def database() -> Iterator[sqlite3.Connection]:
         yield connection
     finally:
         connection.close()
+
+
+Database = Annotated[sqlite3.Connection, Depends(database)]
+
+
+def find(db: sqlite3.Connection, sql: str, key: object, what: str) -> sqlite3.Row:
+    """Return the one row the query finds for key, or a 404."""
+    row = db.execute(sql, (key,)).fetchone()
+    if row is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"There is no {what} {key}")
+    return row
+
+
+def update(
+    db: sqlite3.Connection, sql: str, params: tuple[object, ...], conflict: str
+) -> None:
+    """Run an update that only applies in the right state, or a 409."""
+    if db.execute(sql, params).rowcount == 0:
+        raise HTTPException(status.HTTP_409_CONFLICT, conflict)

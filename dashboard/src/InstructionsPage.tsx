@@ -1,7 +1,7 @@
-import { useApi, type Instructions } from "./api";
+import { paths, useApi, type Instructions } from "./api";
 
 export function InstructionsPage() {
-  const { data, error } = useApi<Instructions>("/api/instructions");
+  const { data, error } = useApi<Instructions>(paths.instructions);
 
   if (error) return <p role="alert">{error}</p>;
   if (!data) return <p>Loading the instructions</p>;

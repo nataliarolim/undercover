@@ -8,7 +8,7 @@ from langchain_core.messages import AIMessage, BaseMessage
 from langchain_core.outputs import ChatResult
 from pydantic import Field
 
-from agent import main
+from agent import api as backend_api
 from backend.main import app
 from backend.seed import seed
 
@@ -52,5 +52,7 @@ def api(tmp_path, monkeypatch):
     """Point the agent at a backend on a freshly seeded database."""
     monkeypatch.setenv("UNDERCOVER_DB", str(tmp_path / "test.db"))
     seed()
-    monkeypatch.setattr(main, "backend", lambda: TestClient(app))
+    monkeypatch.setattr(
+        backend_api, "client", lambda: TestClient(app, base_url="http://test/api")
+    )
     return TestClient(app)

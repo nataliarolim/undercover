@@ -1,14 +1,23 @@
 import inspect
 import runpy
 
+import pytest
+
 from agent import __main__ as cli
-from agent import main
+from agent import harness, tools
+
+
+@pytest.fixture(autouse=True)
+def no_model(monkeypatch):
+    monkeypatch.setattr(harness, "model", lambda: None)
 
 
 def test_works_only_waiting_claims(api, monkeypatch, capsys):
     api.post("/api/claims/CLM-1001/start")
     runs = []
-    monkeypatch.setattr(main, "run", lambda claim_id, thread_id: runs.append(thread_id))
+    monkeypatch.setattr(
+        tools, "run_claim", lambda claim_id, thread_id, llm: runs.append(thread_id)
+    )
     cli.main([])
     assert len(runs) == 24
     assert len(set(runs)) == 24
@@ -18,7 +27,7 @@ def test_works_only_waiting_claims(api, monkeypatch, capsys):
 
 
 def test_works_the_named_claims(api, monkeypatch, capsys):
-    def decide(claim_id, thread_id):
+    def decide(claim_id, thread_id, llm):
         api.post(f"/api/claims/{claim_id}/start")
         api.post(
             f"/api/claims/{claim_id}/decision",
@@ -30,7 +39,7 @@ def test_works_the_named_claims(api, monkeypatch, capsys):
             },
         )
 
-    monkeypatch.setattr(main, "run", decide)
+    monkeypatch.setattr(tools, "run_claim", decide)
     monkeypatch.setattr("sys.argv", ["agent", "CLM-1003"])
     runpy.run_path(inspect.getfile(cli), run_name="__main__")
     assert capsys.readouterr().out == (

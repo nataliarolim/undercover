@@ -1,4 +1,5 @@
 import {
+  paths,
   useApi,
   type Claim,
   type ClaimHistory,
@@ -11,7 +12,7 @@ import { day, dollars, label } from "./format";
 import { Steps } from "./Steps";
 
 function PolicyPanel({ policyId }: Readonly<{ policyId: string }>) {
-  const { data: policy } = useApi<Policy>(`/api/policies/${policyId}`);
+  const { data: policy } = useApi<Policy>(paths.policy(policyId));
   if (!policy) return null;
 
   return (
@@ -41,9 +42,7 @@ function PolicyPanel({ policyId }: Readonly<{ policyId: string }>) {
 }
 
 function HistoryPanel({ customerId }: Readonly<{ customerId: string }>) {
-  const { data: history } = useApi<ClaimHistory>(
-    `/api/customers/${customerId}/history`,
-  );
+  const { data: history } = useApi<ClaimHistory>(paths.history(customerId));
   if (!history) return null;
 
   return (
@@ -117,8 +116,8 @@ function ClaimDetails({ claim }: Readonly<{ claim: Claim }>) {
 }
 
 export function ClaimPage({ claimId }: Readonly<{ claimId: string }>) {
-  const claim = useApi<Claim>(`/api/claims/${claimId}`, true);
-  const steps = useApi<Step[]>(`/api/claims/${claimId}/steps`, true);
+  const claim = useApi<Claim>(paths.claim(claimId), true);
+  const steps = useApi<Step[]>(paths.steps(claimId), true);
 
   if (claim.error) return <p role="alert">{claim.error}</p>;
   if (!claim.data) return <p>Loading the claim</p>;
