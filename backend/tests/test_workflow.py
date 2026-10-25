@@ -1,10 +1,18 @@
 import pytest
 
+from backend.tests.conftest import new_run
+
 CLAIM = "CLM-1003"
 
 
+@pytest.fixture(autouse=True)
+def run_id(client):
+    return new_run(client)
+
+
 def start(client, claim_id=CLAIM):
-    return client.post(f"/api/claims/{claim_id}/start")
+    # The autouse fixture's run is the first in each test's fresh database.
+    return client.post(f"/api/claims/{claim_id}/start", json={"run_id": 1})
 
 
 def decide(client, decision, payout, claim_id=CLAIM):

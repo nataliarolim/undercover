@@ -60,9 +60,19 @@ def get_instructions() -> dict[str, str]:
     return call("GET", "/instructions")
 
 
-def start_claim(claim_id: str) -> dict[str, Any]:
-    """Mark a waiting claim as in progress."""
-    return call("POST", f"/claims/{claim_id}/start")
+def start_run(cap: int) -> dict[str, Any]:
+    """Start a run that takes at most cap claims."""
+    return call("POST", "/runs", {"cap": cap})
+
+
+def finish_run(run_id: int, summary: str) -> dict[str, Any]:
+    """Finish a run with its summary for the handlers."""
+    return call("POST", f"/runs/{run_id}/finish", {"summary": summary})
+
+
+def start_claim(claim_id: str, run_id: int) -> dict[str, Any]:
+    """Start a waiting claim in a run."""
+    return call("POST", f"/claims/{claim_id}/start", {"run_id": run_id})
 
 
 def add_step(claim_id: str, step: dict[str, str]) -> dict[str, Any]:

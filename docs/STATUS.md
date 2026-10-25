@@ -1,13 +1,14 @@
 # Status
 
-The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` is in progress: Phases 1 and 2 are done. Not yet done: the pilot's checks on a real model, because a Netskope proxy policy on the build machine blocks OpenRouter chat requests.
+The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` is in progress: Phases 1 to 3 are done. Reseed after pulling it (`uv run -m backend.seed`): the database schema changed. Not yet done: the pilot's checks on a real model, because a Netskope proxy policy on the build machine blocks OpenRouter chat requests.
 
 ## Built
 
 - `backend/`: FastAPI on SQLite, with routes in `claims.py` and `documents.py` under one `/api` prefix (`backend/undercover.db`, or `UNDERCOVER_DB`), seeded from `data/` on its first start.
   - Reads: claims, policies, a customer's claim history (no contact details), handlers, and the agent's instructions (`backend/instructions/`, with the payout limit filled in).
   - Documents: the policy wording and the claims manual, listed and read one section at a time. Only those two files can be read.
-  - Workflow: start, steps, decision, payment, sign-off. Claims go waiting, in progress, then decided, or waiting for sign-off when an approval is over the limit in `data/company.json` ($1,000).
+  - Runs: a run has a cap, a to-do list and a summary. A claim starts only in a running run, within its cap. Starting a run stops the one before and releases its claims in progress.
+  - Workflow: start, steps, decision, payment, sign-off, release. Claims go waiting, in progress, then decided, or waiting for sign-off when an approval is over the limit in `data/company.json` ($1,000). A released claim goes back to waiting, or to left for a handler on its second attempt.
   - The payment route never pays over the limit; a handler's sign-off pays those.
 - `agent/`: the UnderCover Agent on `create_agent`, DeepSeek V4.1 Flash at low reasoning effort by default (`MODEL_NAME` overrides).
   - `api.py`: every call to the backend, with its URL in one place. `tools.py`: every tool, reading the claim from `ToolRuntime` context. `harness.py`: the model, building agents, streaming steps. `__main__.py`: the CLI.
@@ -30,5 +31,4 @@ The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` 
 
 ## Known limits
 
-- A run that crashes leaves its claim in progress; reseed to reset it.
 - With no sign-in, the API can't tell callers apart. The $1,000 block holds against the agent because it has no sign-off tool.

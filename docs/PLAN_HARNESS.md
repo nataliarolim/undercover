@@ -272,19 +272,19 @@ Draft of `backend/instructions/claim.md`:
 
 **Why now:** the guarantees are backend code, tested without any model, before an agent depends on them.
 
-- [ ] pytest, **the cap on a run**: a run with a cap of 2 starts two claims; a third returns 409 "Run 1 has taken its cap of 2 claims"; restarting one of its own released claims is allowed
-- [ ] pytest: starting a claim in a finished or stopped run returns 409; `attempts` counts each start
-- [ ] pytest, **a failed claim goes back in the queue**: releasing a claim on attempt 1 makes it waiting, keeps the error and posts an `error` step
-- [ ] pytest, **a claim that fails twice is left for a handler**: releasing on attempt 2 makes it `left_for_handler`, and starting it again returns 409
-- [ ] pytest, **never decided or paid twice**: releasing a decided or waiting claim returns 409; a second decision and a second payment return 409, as before
-- [ ] pytest: `start_run` stops a running run and releases its claims in progress, counting the attempt
-- [ ] pytest, **the to-do list stored**: a to-do list put on a run comes back in order from `get_latest_run`; an unknown status returns 422; changing a finished run's list returns 409
-- [ ] pytest: `get_queue` returns every waiting claim until the run holds its cap, then only its own waiting claims, and never a decided or left-for-handler claim
-- [ ] pytest: `finish_run` stores the summary; finishing twice returns 409; `get_latest_run` is `null` before any run
-- [ ] pytest: the OpenAPI walk still finds an `operation_id`, a one-line description and only required inputs on every operation
-- [ ] curl walk-through: start a run with a cap of 1, start CLM-1001, then CLM-1002 returns 409; release CLM-1001, start and release it again, and it shows `left_for_handler` with the error. Reseed afterwards
-- [ ] `npm run e2e` passes twice in a row
-- [ ] `npm run check` passes
+- [x] pytest, **the cap on a run**: a run with a cap of 2 starts two claims; a third returns 409 "Run 1 has reached its cap of 2"; restarting one of its own released claims is allowed
+- [x] pytest: starting a claim in a finished or stopped run returns 409; `attempts` counts each start
+- [x] pytest, **a failed claim goes back in the queue**: releasing a claim on attempt 1 makes it waiting, keeps the error and posts an `error` step
+- [x] pytest, **a claim that fails twice is left for a handler**: releasing on attempt 2 makes it `left_for_handler`, and starting it again returns 409
+- [x] pytest, **never decided or paid twice**: releasing a decided or waiting claim returns 409; a second decision and a second payment return 409, as before
+- [x] pytest: `start_run` stops a running run and releases its claims in progress, counting the attempt
+- [x] pytest, **the to-do list stored**: a to-do list put on a run comes back in order from `get_latest_run`; an unknown status returns 422; changing a finished run's list returns 409
+- [x] pytest: `get_queue` returns every waiting claim until the run holds its cap, then only its own waiting claims, and never a decided or left-for-handler claim
+- [x] pytest: `finish_run` stores the summary; finishing twice returns 409; `get_latest_run` is `null` before any run
+- [x] pytest: the OpenAPI walk still finds an `operation_id`, a one-line description and only required inputs on every operation
+- [x] curl walk-through: start a run with a cap of 1, start CLM-1001, then CLM-1002 returns 409; release CLM-1001, start and release it again, and it shows `left_for_handler` with the error. Reseed afterwards
+- [x] `npm run e2e` passes twice in a row
+- [x] `npm run check` passes
 
 ## Phase 4: The queue agent and a fresh claim agent per claim
 

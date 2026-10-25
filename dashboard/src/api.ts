@@ -5,6 +5,7 @@ export const STATUSES = [
   "in_progress",
   "waiting_for_sign_off",
   "decided",
+  "left_for_handler",
 ] as const;
 export type Status = (typeof STATUSES)[number];
 export type DecisionKind = "approve" | "decline" | "refer";
@@ -84,7 +85,7 @@ export interface Handler {
 
 export interface Step {
   step_id: number;
-  kind: "tool_call" | "tool_result" | "message";
+  kind: "tool_call" | "tool_result" | "message" | "error";
   name: string;
   content: string;
 }

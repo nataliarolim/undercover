@@ -4,6 +4,7 @@ from langchain_core.messages import AIMessage, SystemMessage
 
 from agent import harness, tools
 from agent.tests.conftest import calls, stub
+from backend.tests.conftest import new_run
 
 DECISION = {"rationale": "Covered.", "policy_section": "Section 3, Trip Delay"}
 
@@ -19,7 +20,10 @@ def test_approval_within_the_limit_is_paid(api):
         calls(("pay_claim", {"amount": 420})),
         AIMessage(content="Approved and paid $420.00."),
     )
-    assert tools.run_claim("CLM-1001", "thread-1", llm) == "Approved and paid $420.00."
+    assert (
+        tools.run_claim("CLM-1001", new_run(api), "thread-1", llm)
+        == "Approved and paid $420.00."
+    )
 
     claim = api.get("/api/claims/CLM-1001").json()
     assert claim["status"] == "decided"
@@ -46,7 +50,7 @@ def test_payment_over_the_limit_is_refused(api):
         calls(("pay_claim", {"amount": 3750})),
         AIMessage(content="Approved; the payment waits for sign-off."),
     )
-    tools.run_claim("CLM-1003", "thread-1", llm)
+    tools.run_claim("CLM-1003", new_run(api), "thread-1", llm)
 
     claim = api.get("/api/claims/CLM-1003").json()
     assert claim["status"] == "waiting_for_sign_off"
@@ -58,7 +62,7 @@ def test_payment_over_the_limit_is_refused(api):
 
 def test_system_prompt_comes_from_the_api(api):
     llm = stub(AIMessage(content="Done."))
-    tools.run_claim("CLM-1001", "thread-1", llm)
+    tools.run_claim("CLM-1001", new_run(api), "thread-1", llm)
     system = llm.prompts[0][0]
     assert isinstance(system, SystemMessage)
     assert system.content == api.get("/api/instructions").json()["claim"]
@@ -83,7 +87,7 @@ def test_the_agent_reads_the_sections_it_needs(api):
         calls(("read_section", {"document": "policy_wording", "section": 99})),
         AIMessage(content="Done."),
     )
-    tools.run_claim("CLM-1001", "thread-1", llm)
+    tools.run_claim("CLM-1001", new_run(api), "thread-1", llm)
 
     steps = api.get("/api/claims/CLM-1001/steps").json()
     assert [step["name"] for step in steps[:4]] == [

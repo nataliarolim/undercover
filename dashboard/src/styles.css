@@ -222,7 +222,8 @@ tbody tr + tr td {
   background: var(--sea-green);
 }
 
-.alert {
+.alert,
+.status-left_for_handler {
   background: var(--raspberry);
   color: #ffffff;
 }

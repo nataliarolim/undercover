@@ -11,17 +11,20 @@ from backend.models import (
     ClaimHistory,
     ClaimSummary,
     Decision,
+    Failure,
     Handler,
     NewStep,
     Payment,
     Policy,
     SignOff,
+    StartClaim,
     Step,
 )
 from backend.seed import DATA
 
 COMPANY = json.loads((DATA / "company.json").read_text(encoding="utf-8"))
 PAYOUT_LIMIT: float = COMPANY["payout_approval_limit"]
+ATTEMPTS = 2
 
 router = APIRouter()
 
@@ -35,6 +38,24 @@ def find_claim(db: sqlite3.Connection, claim_id: str) -> Claim:
     """Return the claim, or a 404."""
     row = find(db, "SELECT * FROM claims WHERE claim_id = ?", claim_id, "claim")
     return load_claim(row)
+
+
+def release_in_progress(db: sqlite3.Connection, claim_id: str, error: str) -> bool:
+    """Put a claim in progress back in the queue, or leave it for a handler after its
+    last attempt, recording the error as a step. False if it wasn't in progress."""
+    row = db.execute(
+        "UPDATE claims SET error = ?, status = CASE WHEN attempts < ? "
+        "THEN 'waiting' ELSE 'left_for_handler' END "
+        "WHERE claim_id = ? AND status = 'in_progress' RETURNING attempts",
+        (error, ATTEMPTS, claim_id),
+    ).fetchone()
+    if row is None:
+        return False
+    db.execute(
+        "INSERT INTO steps (claim_id, kind, name, content) VALUES (?, 'error', ?, ?)",
+        (claim_id, f"Attempt {row['attempts']} of {ATTEMPTS}", error),
+    )
+    return True
 
 
 def dollars(amount: float) -> str:
@@ -79,16 +100,39 @@ def list_handlers(db: Database) -> list[Handler]:
 
 
 @router.post("/claims/{claim_id}/start", operation_id="start_claim")
-def start_claim(claim_id: str, db: Database) -> Claim:
-    """Mark a waiting claim as in progress."""
-    find_claim(db, claim_id)
+def start_claim(claim_id: str, start: StartClaim, db: Database) -> Claim:
+    """Start a waiting claim in a running run, within the run's cap."""
+    claim = find_claim(db, claim_id)
+    run = find(db, "SELECT * FROM runs WHERE run_id = ?", start.run_id, "run")
+    if run["status"] != "running":
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, f"Run {start.run_id} is {run['status']}"
+        )
+    if claim.status != "waiting":
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, f"Claim {claim_id} is not waiting"
+        )
+    # One statement, so two starts at once can't both pass the cap.
     update(
         db,
-        "UPDATE claims SET status = 'in_progress' "
-        "WHERE claim_id = ? AND status = 'waiting'",
-        (claim_id,),
-        f"Claim {claim_id} is not waiting",
+        "UPDATE claims SET status = 'in_progress', attempts = attempts + 1, "
+        "error = NULL, run_id = :run WHERE claim_id = :claim AND status = 'waiting' "
+        "AND (run_id IS :run OR (SELECT COUNT(*) FROM claims WHERE run_id = :run) "
+        "< (SELECT cap FROM runs WHERE run_id = :run))",
+        {"run": start.run_id, "claim": claim_id},
+        f"Run {start.run_id} has reached its cap of {run['cap']}",
     )
+    return find_claim(db, claim_id)
+
+
+@router.post("/claims/{claim_id}/release", operation_id="release_claim")
+def release_claim(claim_id: str, failure: Failure, db: Database) -> Claim:
+    """Release a claim that failed in progress, back to waiting or to a handler."""
+    find_claim(db, claim_id)
+    if not release_in_progress(db, claim_id, failure.error):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, f"Claim {claim_id} is not in progress"
+        )
     return find_claim(db, claim_id)
 
 

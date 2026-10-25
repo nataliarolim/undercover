@@ -5,6 +5,7 @@ import pytest
 
 from agent import __main__ as cli
 from agent import harness, tools
+from backend.tests.conftest import new_run
 
 
 @pytest.fixture(autouse=True)
@@ -13,10 +14,12 @@ def no_model(monkeypatch):
 
 
 def test_works_only_waiting_claims(api, monkeypatch, capsys):
-    api.post("/api/claims/CLM-1001/start")
+    api.post("/api/claims/CLM-1001/start", json={"run_id": new_run(api)})
     runs = []
     monkeypatch.setattr(
-        tools, "run_claim", lambda claim_id, thread_id, llm: runs.append(thread_id)
+        tools,
+        "run_claim",
+        lambda claim_id, run_id, thread_id, llm: runs.append(thread_id),
     )
     cli.main([])
     assert len(runs) == 24
@@ -27,8 +30,8 @@ def test_works_only_waiting_claims(api, monkeypatch, capsys):
 
 
 def test_works_the_named_claims(api, monkeypatch, capsys):
-    def decide(claim_id, thread_id, llm):
-        api.post(f"/api/claims/{claim_id}/start")
+    def decide(claim_id, run_id, thread_id, llm):
+        api.post(f"/api/claims/{claim_id}/start", json={"run_id": run_id})
         api.post(
             f"/api/claims/{claim_id}/decision",
             json={
@@ -45,3 +48,6 @@ def test_works_the_named_claims(api, monkeypatch, capsys):
     assert capsys.readouterr().out == (
         "CLM-1003 waiting_for_sign_off approve $3,750.00\n"
     )
+    run = api.get("/api/runs/latest").json()
+    assert (run["cap"], run["status"]) == (1, "finished")
+    assert run["summary"] == "CLM-1003 waiting_for_sign_off approve $3,750.00"

@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, FastAPI
 
-from backend import claims, documents
+from backend import claims, documents, runs
 from backend.db import database_path
 from backend.seed import seed
 
@@ -29,6 +29,7 @@ def health() -> dict[str, str]:
 
 api.include_router(claims.router)
 api.include_router(documents.router)
+api.include_router(runs.router)
 
 app = FastAPI(title="UnderCover", lifespan=lifespan)
 app.include_router(api)

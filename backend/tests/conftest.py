@@ -10,3 +10,8 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("UNDERCOVER_DB", str(tmp_path / "test.db"))
     with TestClient(app) as client:
         yield client
+
+
+def new_run(client, cap=25):
+    """Start a run and return its id."""
+    return client.post("/api/runs", json={"cap": cap}).json()["run_id"]

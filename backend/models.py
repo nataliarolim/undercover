@@ -4,7 +4,9 @@ from typing import Annotated, Literal, Self
 
 from pydantic import AfterValidator, BaseModel, Field, model_validator
 
-Status = Literal["waiting", "in_progress", "waiting_for_sign_off", "decided"]
+Status = Literal[
+    "waiting", "in_progress", "waiting_for_sign_off", "decided", "left_for_handler"
+]
 DecisionKind = Literal["approve", "decline", "refer"]
 Dollars = Annotated[float, Field(ge=0), AfterValidator(lambda amount: round(amount, 2))]
 
@@ -17,6 +19,7 @@ class ClaimSummary(BaseModel):
     status: Status
     decision: DecisionKind | None
     payout: float | None
+    attempts: int
 
 
 class Item(BaseModel):
@@ -44,6 +47,8 @@ class Claim(ClaimSummary):
     policy_section: str | None
     paid_amount: float | None
     signed_off_by: str | None
+    error: str | None
+    run_id: int | None
 
 
 class Trip(BaseModel):
@@ -107,7 +112,7 @@ class Instructions(BaseModel):
 
 
 class NewStep(BaseModel):
-    kind: Literal["tool_call", "tool_result", "message"]
+    kind: Literal["tool_call", "tool_result", "message", "error"]
     name: str
     content: str
 
@@ -137,3 +142,38 @@ class Payment(BaseModel):
 
 class SignOff(BaseModel):
     handler_id: str
+
+
+class StartClaim(BaseModel):
+    run_id: int
+
+
+class Failure(BaseModel):
+    error: str
+
+
+class NewRun(BaseModel):
+    cap: int = Field(ge=1)
+
+
+class Todo(BaseModel):
+    content: str
+    status: Literal["to_do", "in_progress", "done", "left_for_handler"]
+
+
+class Todos(BaseModel):
+    todos: list[Todo]
+
+
+class Finish(BaseModel):
+    summary: str
+
+
+class Run(BaseModel):
+    run_id: int
+    cap: int
+    status: Literal["running", "finished", "stopped"]
+    todos: list[Todo]
+    summary: str | None
+    started_at: str
+    finished_at: str | None

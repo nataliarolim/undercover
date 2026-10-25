@@ -1,9 +1,11 @@
 import { defineConfig } from "@playwright/test";
 
 // The tests write decisions, so they run on their own database and ports,
-// never on the queue that `npm run dev` serves.
+// never on the queue that `npm run dev` serves. They run one at a time: the
+// queue page shows the latest run, and starting a run stops the one before.
 export default defineConfig({
   testDir: "e2e",
+  workers: 1,
   outputDir: "e2e/test-results",
   reporter: "list",
   use: { baseURL: "http://localhost:5174" },

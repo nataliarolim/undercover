@@ -4,7 +4,9 @@ test("the agent's steps appear while it works", async ({ page, request }) => {
   await page.goto("/#/claims/CLM-1002");
   await expect(page.getByText("No steps yet.")).toBeVisible();
 
-  await request.post("/api/claims/CLM-1002/start");
+  const run = await request.post("/api/runs", { data: { cap: 1 } });
+  const { run_id } = (await run.json()) as { run_id: number };
+  await request.post("/api/claims/CLM-1002/start", { data: { run_id } });
   await request.post("/api/claims/CLM-1002/steps", {
     data: { kind: "tool_call", name: "get_claim", content: "{}" },
   });

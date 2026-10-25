@@ -4,7 +4,9 @@ test("a handler signs off an approval over $1,000, which pays it", async ({
   page,
   request,
 }) => {
-  await request.post("/api/claims/CLM-1003/start");
+  const run = await request.post("/api/runs", { data: { cap: 1 } });
+  const { run_id } = (await run.json()) as { run_id: number };
+  await request.post("/api/claims/CLM-1003/start", { data: { run_id } });
   await request.post("/api/claims/CLM-1003/decision", {
     data: {
       decision: "approve",

@@ -89,9 +89,9 @@ CLAIM_TOOLS = [
 REFUSALS = harness.refusals(api.Refused)
 
 
-def run_claim(claim_id: str, thread_id: str, llm: BaseChatModel) -> str:
+def run_claim(claim_id: str, run_id: int, thread_id: str, llm: BaseChatModel) -> str:
     """Start a claim and have a claim agent decide it, posting each step."""
-    api.start_claim(claim_id)
+    api.start_claim(claim_id, run_id)
     instructions = api.get_instructions()["claim"]
     agent = harness.create(llm, CLAIM_TOOLS, instructions, ClaimContext, [REFUSALS])
     return harness.run(

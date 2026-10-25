@@ -14,7 +14,17 @@ DROP TABLE IF EXISTS claims;
 DROP TABLE IF EXISTS policies;
 DROP TABLE IF EXISTS customers;
 DROP TABLE IF EXISTS handlers;
+DROP TABLE IF EXISTS runs;
 
+CREATE TABLE runs (
+    run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cap INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    todos TEXT NOT NULL DEFAULT '[]',
+    summary TEXT,
+    started_at TEXT NOT NULL,
+    finished_at TEXT
+);
 CREATE TABLE claims (
     claim_id TEXT PRIMARY KEY,
     record TEXT NOT NULL,
@@ -24,7 +34,10 @@ CREATE TABLE claims (
     rationale TEXT,
     policy_section TEXT,
     paid_amount REAL,
-    signed_off_by TEXT
+    signed_off_by TEXT,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    error TEXT,
+    run_id INTEGER REFERENCES runs (run_id)
 );
 CREATE TABLE policies (policy_id TEXT PRIMARY KEY, record TEXT NOT NULL);
 CREATE TABLE customers (customer_id TEXT PRIMARY KEY, record TEXT NOT NULL);
@@ -75,7 +88,10 @@ def find(db: sqlite3.Connection, sql: str, key: object, what: str) -> sqlite3.Ro
 
 
 def update(
-    db: sqlite3.Connection, sql: str, params: tuple[object, ...], conflict: str
+    db: sqlite3.Connection,
+    sql: str,
+    params: tuple[object, ...] | dict[str, object],
+    conflict: str,
 ) -> None:
     """Run an update that only applies in the right state, or a 409."""
     if db.execute(sql, params).rowcount == 0:

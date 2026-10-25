@@ -24,9 +24,14 @@ def main(claim_ids: list[str]) -> None:
     load_dotenv(override=True)
     llm = harness.model()
     waiting = [c["claim_id"] for c in api.list_claims() if c["status"] == "waiting"]
-    for claim_id in claim_ids or waiting:
-        tools.run_claim(claim_id, str(uuid.uuid4()), llm)
-        print(outcome(api.get_claim(claim_id)), flush=True)
+    chosen = claim_ids or waiting
+    run_id = api.start_run(len(chosen))["run_id"]
+    lines = []
+    for claim_id in chosen:
+        tools.run_claim(claim_id, run_id, str(uuid.uuid4()), llm)
+        lines.append(outcome(api.get_claim(claim_id)))
+        print(lines[-1], flush=True)
+    api.finish_run(run_id, "\n".join(lines))
 
 
 if __name__ == "__main__":
