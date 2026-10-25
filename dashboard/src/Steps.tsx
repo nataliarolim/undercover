@@ -12,6 +12,13 @@ function StepItem({ step }: Readonly<{ step: Step }>) {
   if (step.kind === "message") {
     return <blockquote className="quote">{step.content}</blockquote>;
   }
+  if (step.kind === "error") {
+    return (
+      <p>
+        <span className="badge alert">Failed</span> {step.name}: {step.content}
+      </p>
+    );
+  }
   if (step.kind === "tool_call") {
     return (
       <p>

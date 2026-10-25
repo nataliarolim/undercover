@@ -322,13 +322,15 @@ Draft of `backend/instructions/claim.md`:
 
 **Why now:** the API it shows is complete and tested.
 
-- [ ] vitest, **the to-do list shown**: the queue page shows each item with its status label and the summary once finished; "No runs yet." when there is no run
-- [ ] vitest: five status tiles, with Left for a handler counted
-- [ ] vitest: a claim left for a handler shows its error and "2 of 2 attempts"; an `error` step shows Failed
-- [ ] e2e: the test starts a run and puts a to-do list on it, then marks an item done; the queue page shows the list filling in and the item ticked off with no reload, and the summary after `finish_run`
-- [ ] e2e: a claim started and released twice shows Left for a handler on the queue and its error on its page
-- [ ] Playwright MCP on localhost:5173, light and dark (emulated), screenshot each: the run panel, the five tiles and a claim left for a handler. Reseed afterwards
-- [ ] `npm run check:ts` and `npm run e2e` pass
+- [x] vitest, **the to-do list shown**: the queue page shows each item with its status label and the summary once finished; "No runs yet." when there is no run
+- [x] vitest: five status tiles, with Left for a handler counted
+- [x] vitest: a claim left for a handler shows its error and "Left for a handler after 2 attempts"; an `error` step shows Failed
+- [x] e2e: the test starts a run and puts a to-do list on it, then marks an item done; the queue page shows the list filling in and the item ticked off with no reload, and the summary after `finish_run`
+- [x] e2e: a claim started and released twice shows Left for a handler on the queue and its error on its page
+- [x] Playwright MCP on localhost:5173, light and dark (emulated), screenshot each: the run panel, the five tiles and a claim left for a handler. Reseed afterwards
+
+> The Playwright MCP server failed to connect in this session, so the browser check ran as a Playwright script on the repo's Chromium, with the same pages, color schemes and screenshots, plus a 390 px phone width.
+- [x] `npm run check:ts` and `npm run e2e` pass
 
 ## Phase 6: A trial on five claims, and the docs
 

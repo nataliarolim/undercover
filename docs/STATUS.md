@@ -1,6 +1,6 @@
 # Status
 
-The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` is in progress: Phases 1 to 4 are done. Reseed after pulling it (`uv run -m backend.seed`): the database schema changed. Not yet done: the pilot's checks on a real model, because a Netskope proxy policy on the build machine blocks OpenRouter chat requests.
+The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` is in progress: Phases 1 to 5 are done. Reseed after pulling it (`uv run -m backend.seed`): the database schema changed. Not yet done: the pilot's checks on a real model, because a Netskope proxy policy on the build machine blocks OpenRouter chat requests.
 
 ## Built
 
@@ -16,10 +16,10 @@ The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` 
   - `work_claim` starts the claim and has a fresh claim agent decide it, posting every tool call, result and reply as a step on the claim. Whatever ends the claim agent (an error, its 50-step limit, no decision), a claim left in progress is released. It reports one line from the claim's record.
   - The claim agent's seven tools: `get_claim`, `get_policy`, `get_claim_history`, `list_sections`, `read_section`, `record_decision`, `pay_claim`; none signs off.
 - `dashboard/`: React on Vite, in UnderCover's brand, light and dark.
-  - `#/`: the queue, with a count per status, refreshed every 2 s.
-  - `#/claims/<id>`: the claim in full with its policy and claim history, the decision and its reasons, the sections the agent read, its steps as they happen, and sign-off.
+  - `#/`: the queue, with a count per status, and the current run: its status, cap, to-do list and, once finished, its summary. Refreshed every 2 s.
+  - `#/claims/<id>`: the claim in full with its policy and claim history, the decision and its reasons, the sections the agent read, its steps as they happen, any failed attempts, and sign-off.
   - `#/instructions`: the agent's instructions, read only.
-- `e2e/`: the queue, the instructions, a claim page, live steps and sign-off. Playwright runs its own backend on port 8001 with `backend/e2e.db`, seeded at start, and Vite on 5174, so `npm run check` never touches the queue `npm run dev` serves.
+- `e2e/`: the queue, the instructions, a claim page, live steps, sign-off, a run's to-do list and a claim left for a handler. The specs run one at a time. Playwright runs its own backend on port 8001 with `backend/e2e.db`, seeded at start, and Vite on 5174, so `npm run check` never touches the queue `npm run dev` serves.
 
 ## Run it
 

@@ -202,30 +202,69 @@ tbody tr + tr td {
   white-space: nowrap;
 }
 
-.status-waiting {
+.status-waiting,
+.todo-to_do {
   background: var(--cerulean);
   color: #ffffff;
 }
 
 .status-in_progress,
-.decision-refer {
+.decision-refer,
+.todo-in_progress,
+.run-running {
   background: var(--marigold);
 }
 
 .status-waiting_for_sign_off,
-.decision-decline {
+.decision-decline,
+.run-stopped {
   background: var(--coral);
 }
 
 .status-decided,
-.decision-approve {
+.decision-approve,
+.todo-done,
+.run-finished {
   background: var(--sea-green);
 }
 
 .alert,
-.status-left_for_handler {
+.status-left_for_handler,
+.todo-left_for_handler {
   background: var(--raspberry);
   color: #ffffff;
+}
+
+.run {
+  margin-bottom: 20px;
+}
+
+.run-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.todos {
+  columns: 2 320px;
+  column-gap: 32px;
+  margin: 12px 0 0;
+  padding-left: 22px;
+}
+
+.todos li {
+  margin-bottom: 6px;
+  break-inside: avoid;
+}
+
+.summary {
+  margin: 16px 0 0;
+  white-space: pre-line;
+}
+
+.failure {
+  margin: 12px 0 0;
 }
 
 .claim-title {

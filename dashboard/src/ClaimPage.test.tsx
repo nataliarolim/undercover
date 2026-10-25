@@ -136,6 +136,52 @@ it("lists the sections the agent read, once each", async () => {
   expect(panel("What the agent read").getAllByRole("listitem")).toHaveLength(1);
 });
 
+it("shows a claim left for a handler with its error", async () => {
+  stubClaim(
+    {
+      ...CLAIM,
+      status: "left_for_handler",
+      attempts: 2,
+      error: "TimeoutError: The model took too long",
+    },
+    [
+      {
+        step_id: 1,
+        kind: "error",
+        name: "Attempt 2 of 2",
+        content: "TimeoutError: The model took too long",
+      },
+    ],
+  );
+  render(<ClaimPage claimId="CLM-1001" />);
+
+  expect(
+    await screen.findByText(
+      "TimeoutError: The model took too long. Left for a handler after 2 attempts.",
+    ),
+  ).toBeDefined();
+  expect(
+    panel("Agent steps").getByText(
+      "Attempt 2 of 2: TimeoutError: The model took too long",
+    ),
+  ).toBeDefined();
+  expect(screen.getAllByText("Failed")).toHaveLength(2);
+});
+
+it("shows a claim back in the queue after a failure", async () => {
+  stubClaim({
+    ...CLAIM,
+    attempts: 1,
+    error: "The agent finished without a decision",
+  });
+  render(<ClaimPage claimId="CLM-1001" />);
+  expect(
+    await screen.findByText(
+      "The agent finished without a decision. Back in the queue after attempt 1.",
+    ),
+  ).toBeDefined();
+});
+
 it("signs off an approval over the limit, which pays it", async () => {
   let signedOff = false;
   const fetchMock = stubApi({

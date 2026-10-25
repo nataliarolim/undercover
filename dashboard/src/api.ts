@@ -18,6 +18,7 @@ export interface ClaimSummary {
   status: Status;
   decision: DecisionKind | null;
   payout: number | null;
+  attempts: number;
 }
 
 export interface Item {
@@ -45,6 +46,8 @@ export interface Claim extends ClaimSummary {
   policy_section: string | null;
   paid_amount: number | null;
   signed_off_by: string | null;
+  error: string | null;
+  run_id: number | null;
 }
 
 export interface Policy {
@@ -90,6 +93,24 @@ export interface Step {
   content: string;
 }
 
+export type TodoStatus = "to_do" | "in_progress" | "done" | "left_for_handler";
+export type RunStatus = "running" | "finished" | "stopped";
+
+export interface Todo {
+  content: string;
+  status: TodoStatus;
+}
+
+export interface Run {
+  run_id: number;
+  cap: number;
+  status: RunStatus;
+  todos: Todo[];
+  summary: string | null;
+  started_at: string;
+  finished_at: string | null;
+}
+
 export interface Instructions {
   queue: string;
   claim: string;
@@ -117,6 +138,7 @@ export const paths = {
   history: (customerId: string) => `${API}/customers/${customerId}/history`,
   handlers: `${API}/handlers`,
   instructions: `${API}/instructions`,
+  latestRun: `${API}/runs/latest`,
 };
 
 async function read<T>(response: Response): Promise<T> {

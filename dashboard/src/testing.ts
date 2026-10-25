@@ -1,5 +1,12 @@
 import { vi } from "vitest";
-import type { Claim, ClaimHistory, ClaimSummary, Handler, Policy } from "./api";
+import type {
+  Claim,
+  ClaimHistory,
+  ClaimSummary,
+  Handler,
+  Policy,
+  Run,
+} from "./api";
 
 /**
  * Stub fetch with replies keyed by path, such as "/api/claims" or
@@ -30,6 +37,7 @@ export const WAITING: ClaimSummary = {
   status: "waiting",
   decision: null,
   payout: null,
+  attempts: 0,
 };
 
 export const HELD: ClaimSummary = {
@@ -40,6 +48,7 @@ export const HELD: ClaimSummary = {
   status: "waiting_for_sign_off",
   decision: "approve",
   payout: 3750,
+  attempts: 1,
 };
 
 export const CLAIM: Claim = {
@@ -69,6 +78,23 @@ export const CLAIM: Claim = {
   policy_section: null,
   paid_amount: null,
   signed_off_by: null,
+  error: null,
+  run_id: null,
+};
+
+export const RUN: Run = {
+  run_id: 3,
+  cap: 5,
+  status: "running",
+  todos: [
+    { content: "Decide CLM-1001", status: "done" },
+    { content: "Decide CLM-1002", status: "in_progress" },
+    { content: "Decide CLM-1003", status: "to_do" },
+    { content: "Decide CLM-1004", status: "left_for_handler" },
+  ],
+  summary: null,
+  started_at: "2026-10-25T12:00:00+00:00",
+  finished_at: null,
 };
 
 export const POLICY: Policy = {

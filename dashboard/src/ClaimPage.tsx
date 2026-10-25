@@ -69,6 +69,19 @@ function HistoryPanel({ customerId }: Readonly<{ customerId: string }>) {
   );
 }
 
+function Failure({ claim }: Readonly<{ claim: Claim }>) {
+  if (claim.error === null) return null;
+  const next =
+    claim.status === "left_for_handler"
+      ? `Left for a handler after ${String(claim.attempts)} attempts.`
+      : `Back in the queue after attempt ${String(claim.attempts)}.`;
+  return (
+    <p className="failure">
+      <span className="badge alert">Failed</span> {claim.error}. {next}
+    </p>
+  );
+}
+
 function ClaimDetails({ claim }: Readonly<{ claim: Claim }>) {
   return (
     <>
@@ -138,6 +151,7 @@ export function ClaimPage({ claimId }: Readonly<{ claimId: string }>) {
         {day(data.incident_date)}. Submitted {day(data.submitted_on)}. Claimed{" "}
         <span className="mono">{dollars(data.amount_claimed)}</span>.
       </p>
+      <Failure claim={data} />
       <div className="columns">
         <div className="stack">
           <ClaimDetails claim={data} />

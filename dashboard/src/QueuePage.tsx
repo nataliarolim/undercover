@@ -1,6 +1,7 @@
 import { STATUSES, paths, useApi, type ClaimSummary } from "./api";
 import { DecisionBadge, StatusBadge } from "./Badge";
 import { dollars, label } from "./format";
+import { RunPanel } from "./RunPanel";
 
 export function QueuePage() {
   const { data: claims, error } = useApi<ClaimSummary[]>(paths.claims, true);
@@ -21,6 +22,7 @@ export function QueuePage() {
           </li>
         ))}
       </ul>
+      <RunPanel />
       <div className="panel table-wrap">
         <table>
           <thead>

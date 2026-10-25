@@ -1,5 +1,10 @@
-import type { DecisionKind, Status } from "./api";
-import { DECISION_LABELS, STATUS_LABELS } from "./format";
+import type { DecisionKind, RunStatus, Status, TodoStatus } from "./api";
+import {
+  DECISION_LABELS,
+  RUN_LABELS,
+  STATUS_LABELS,
+  TODO_LABELS,
+} from "./format";
 
 export function StatusBadge({ status }: Readonly<{ status: Status }>) {
   return (
@@ -15,4 +20,12 @@ export function DecisionBadge({
       {DECISION_LABELS[decision]}
     </span>
   );
+}
+
+export function TodoBadge({ status }: Readonly<{ status: TodoStatus }>) {
+  return <span className={`badge todo-${status}`}>{TODO_LABELS[status]}</span>;
+}
+
+export function RunBadge({ status }: Readonly<{ status: RunStatus }>) {
+  return <span className={`badge run-${status}`}>{RUN_LABELS[status]}</span>;
 }
