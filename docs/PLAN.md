@@ -176,6 +176,8 @@ Draft of `backend/instructions.md`, built on Day 2's:
 - [ ] Real model, one claim, under $0.01: with `npm run dev` up, `uv run -m backend.seed` then `uv run -m agent CLM-1001` prints `CLM-1001 decided approve $420.00`. That's the wording's answer: a 19-hour delay on Premium (6-hour waiting period) caused by crew, $420 of receipts under the $800 maximum, no deductible on Trip Delay. `curl localhost:8000/api/claims/CLM-1001/steps` lists the run. Reseed afterwards. This is a spot check, not a threshold: if the model disagrees, read its rationale and steps, and change the instructions only for a reason that holds across claims, never rerunning until it matches
 - [x] `npm run check:python` passes
 
+> Not checked yet: a Netskope proxy policy on the build machine answers OpenRouter chat requests with a 403 justification page, so no real model could run. The stub-model tests cover the same paths.
+
 ## Phase 4: Dashboard shell, queue and instructions
 
 **Builds:**
@@ -230,6 +232,8 @@ Draft of `backend/instructions.md`, built on Day 2's:
 - [ ] Playwright MCP: the queue shows the mix; one claim of each decision reads correctly; one held approval signed off in the browser
 - [ ] `npm run check` passes, and the worked queue is unchanged afterwards
 - [ ] Report: counts by decision and status, and the straight-through rate (claims not referred)
+
+> Not checked yet: a Netskope proxy policy on the build machine answers OpenRouter chat requests with a 403 justification page, so no real model could run. The stub-model tests cover the same paths.
 
 ## Not in this plan
 
