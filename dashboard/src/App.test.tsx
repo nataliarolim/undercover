@@ -1,7 +1,7 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { App } from "./App";
-import { WAITING, stubApi } from "./testing";
+import { CLAIM, WAITING, stubApi } from "./testing";
 
 afterEach(() => {
   cleanup();
@@ -33,7 +33,11 @@ it("shows the agent's instructions, read only", async () => {
 });
 
 it("follows the address to a claim", async () => {
-  stubApi({ "/api/claims": [WAITING] });
+  stubApi({
+    "/api/claims": [WAITING],
+    "/api/claims/CLM-1001": CLAIM,
+    "/api/claims/CLM-1001/steps": [],
+  });
   render(<App />);
   await screen.findByRole("heading", { name: "Claims queue" });
 
@@ -41,7 +45,9 @@ it("follows the address to a claim", async () => {
     window.location.hash = "#/claims/CLM-1001";
     window.dispatchEvent(new HashChangeEvent("hashchange"));
   });
-  expect(screen.getByRole("heading", { name: "CLM-1001" })).toBeDefined();
+  expect(
+    await screen.findByRole("heading", { name: "CLM-1001 Waiting" }),
+  ).toBeDefined();
 });
 
 it("shows an error when the instructions fail to load", async () => {

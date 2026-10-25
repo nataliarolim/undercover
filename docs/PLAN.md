@@ -208,13 +208,13 @@ Draft of `backend/instructions.md`, built on Day 2's:
 
 **Why now:** it needs the workflow API and the shell.
 
-- [ ] vitest: the page in each status: waiting (no decision yet), in progress with steps, waiting for sign-off with the form, decided with the payment; sign-off posts the `handler_id` and the page shows Decided
-- [ ] e2e: CLM-1001 shows the story, 3 items, 4 documents, the Premium policy and one previous claim
-- [ ] e2e: with CLM-1002 open, the test starts it and posts a step through the API; the step appears with no reload
-- [ ] e2e: the test takes CLM-1003 through start, approve $3,750 and a refused payment; the page shows Waiting for sign-off; choosing Dana Whitfield and signing off shows Decided, Paid $3,750.00, signed off by Dana Whitfield
-- [ ] Each e2e test that changes data owns its claim, and `npm run e2e` passes twice in a row
-- [ ] Playwright MCP on localhost:5173: the same sign-off by hand on a claim set up by curl, screenshots in light and dark. Reseed afterwards
-- [ ] `npm run check:ts` and `npm run e2e` pass
+- [x] vitest: the page in each status: waiting (no decision yet), in progress with steps, waiting for sign-off with the form, decided with the payment; sign-off posts the `handler_id` and the page shows Decided
+- [x] e2e: CLM-1001 shows the story, 3 items, 4 documents, the Premium policy and one previous claim
+- [x] e2e: with CLM-1002 open, the test starts it and posts a step through the API; the step appears with no reload
+- [x] e2e: the test takes CLM-1003 through start, approve $3,750 and a refused payment; the page shows Waiting for sign-off; choosing Dana Whitfield and signing off shows Decided, Paid $3,750.00, signed off by Dana Whitfield
+- [x] Each e2e test that changes data owns its claim, and `npm run e2e` passes twice in a row
+- [x] Playwright MCP on localhost:5173: the same sign-off by hand on a claim set up by curl, screenshots in light and dark. Reseed afterwards
+- [x] `npm run check:ts` and `npm run e2e` pass
 
 ## Phase 6: The whole queue with the real model
 

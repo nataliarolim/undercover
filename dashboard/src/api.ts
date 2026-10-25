@@ -122,8 +122,12 @@ export interface Loaded<T> {
 }
 
 /** Fetch a path from the API, and fetch it again every POLL_MS if asked. */
-export function useApi<T>(path: string, poll = false): Loaded<T> {
+export function useApi<T>(
+  path: string,
+  poll = false,
+): Loaded<T> & { reload: () => void } {
   const [loaded, setLoaded] = useState<Loaded<T>>({});
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -143,7 +147,12 @@ export function useApi<T>(path: string, poll = false): Loaded<T> {
       active = false;
       clearInterval(timer);
     };
-  }, [path, poll]);
+  }, [path, poll, version]);
 
-  return loaded;
+  return {
+    ...loaded,
+    reload: () => {
+      setVersion((current) => current + 1);
+    },
+  };
 }

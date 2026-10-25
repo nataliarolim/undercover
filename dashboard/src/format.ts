@@ -5,8 +5,18 @@ const usd = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
+const days = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeZone: "UTC",
+});
+
 export function dollars(amount: number): string {
   return usd.format(amount);
+}
+
+/** Format a date such as 2026-06-18 as Jun 18, 2026. */
+export function day(date: string): string {
+  return days.format(new Date(`${date}T00:00:00Z`));
 }
 
 export const STATUS_LABELS: Record<Status, string> = {
