@@ -29,7 +29,7 @@ def work_queue(
     cap: int | None, queue_llm: BaseChatModel, claim_llm: BaseChatModel
 ) -> str:
     """Run the queue agent once over the queue, and return its summary."""
-    run_id = api.start_run(cap or len(api.list_claims()))["run_id"]
+    run_id = api.start_run(len(api.list_claims()) if cap is None else cap)["run_id"]
     agent = harness.create(
         queue_llm,
         tools.QUEUE_TOOLS,

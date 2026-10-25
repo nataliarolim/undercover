@@ -127,6 +127,10 @@ it("lists the sections the agent read, once each", async () => {
     read(1, section),
     read(2, section),
     read(3, '{"detail":"There is no section 99 in policy_wording"}'),
+    read(
+      4,
+      "Error: 1 validation error for read_section. Please fix your mistakes.",
+    ),
   ]);
   render(<ClaimPage claimId="CLM-1001" />);
 

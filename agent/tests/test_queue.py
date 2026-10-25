@@ -1,6 +1,8 @@
+import pytest
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
 from agent import __main__ as cli
+from agent import api as backend_api
 from agent.tests.conftest import calls, decides, stub
 
 TIMEOUT = TimeoutError("The model took too long")
@@ -143,6 +145,11 @@ def test_the_check_for_missed_claims_reminds_at_most_twice(api):
     assert cli.work_queue(1, queue, stub()) == "No."
     assert len(queue.prompts) == 3
     assert latest_run(api)["status"] == "finished"
+
+
+def test_a_cap_of_zero_is_refused_not_ignored(api):
+    with pytest.raises(backend_api.Refused):
+        cli.work_queue(0, stub(), stub())
 
 
 def test_a_run_over_the_whole_queue_is_capped_at_its_size(api):

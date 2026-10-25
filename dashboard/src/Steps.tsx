@@ -49,10 +49,11 @@ function StepItem({ step }: Readonly<{ step: Step }>) {
 function sectionsRead(steps: Step[]): SectionRead[] {
   const read = new Map<string, SectionRead>();
   for (const step of steps) {
+    // Only a section the backend returned: a refusal or a malformed call is text.
     if (
       step.kind === "tool_result" &&
       step.name === "read_section" &&
-      !refusal(step.content)
+      step.content.startsWith('{"document":')
     ) {
       const section = JSON.parse(step.content) as SectionRead;
       read.set(`${section.document} ${String(section.section)}`, section);
