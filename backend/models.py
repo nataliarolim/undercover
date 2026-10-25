@@ -1,11 +1,12 @@
 """What the UnderCover API takes and returns."""
 
-from typing import Literal
+from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel
+from pydantic import AfterValidator, BaseModel, Field, model_validator
 
 Status = Literal["waiting", "in_progress", "waiting_for_sign_off", "decided"]
 DecisionKind = Literal["approve", "decline", "refer"]
+Dollars = Annotated[float, Field(ge=0), AfterValidator(lambda amount: round(amount, 2))]
 
 
 class ClaimSummary(BaseModel):
@@ -89,3 +90,36 @@ class Handler(BaseModel):
 
 class Instructions(BaseModel):
     instructions: str
+
+
+class NewStep(BaseModel):
+    kind: Literal["tool_call", "tool_result", "message"]
+    name: str
+    content: str
+
+
+class Step(NewStep):
+    step_id: int
+
+
+class Decision(BaseModel):
+    decision: DecisionKind
+    payout: Dollars
+    rationale: str
+    policy_section: str
+
+    @model_validator(mode="after")
+    def payout_fits_decision(self) -> Self:
+        if (self.decision == "approve") != (self.payout > 0):
+            raise ValueError(
+                "An approval needs a payout above 0, a decline or a referral 0"
+            )
+        return self
+
+
+class Payment(BaseModel):
+    amount: Dollars
+
+
+class SignOff(BaseModel):
+    handler_id: str

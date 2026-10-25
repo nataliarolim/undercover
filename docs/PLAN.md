@@ -150,16 +150,16 @@ Draft of `backend/instructions.md`, built on Day 2's:
 
 **Why now:** the rules are backend code, tested without any model, before an agent can call them.
 
-- [ ] pytest: `start_claim` moves `waiting` to `in_progress`; a second start returns 409
-- [ ] pytest: decline and refer go to `decided` and need a payout of 0; approve up to $1,000 goes to `decided`; approve over $1,000 goes to `waiting_for_sign_off`; approve with a payout of 0 returns 422; a decision on a claim that isn't in progress returns 409
-- [ ] pytest: an approval of $1,000.00 pays (200); an approval of $1,000.01 is refused (403) and `paid_amount` stays null
-- [ ] pytest: a claim approved for $3,750, paid $999, returns 403, so splitting a payment can't get round the limit
-- [ ] pytest: a claim approved for $400, paid $500, returns 409
-- [ ] pytest: paying before a decision, or twice, returns 409
-- [ ] pytest: sign-off moves `waiting_for_sign_off` to `decided`, sets `paid_amount` to the payout and `signed_off_by` to the handler; sign-off in any other status returns 409; an unknown handler returns 404
-- [ ] pytest: steps come back in the order they were posted
-- [ ] curl walk-through on CLM-1003: start, approve $3,750, pay $3,750 returns 403 with `{"detail": "Payouts over $1,000.00 need a handler's sign-off"}`, sign off as HND-01, then `GET` shows `decided`, `paid_amount` 3750 and `signed_off_by` HND-01. Reseed afterwards
-- [ ] `npm run check:python` passes
+- [x] pytest: `start_claim` moves `waiting` to `in_progress`; a second start returns 409
+- [x] pytest: decline and refer go to `decided` and need a payout of 0; approve up to $1,000 goes to `decided`; approve over $1,000 goes to `waiting_for_sign_off`; approve with a payout of 0 returns 422; a decision on a claim that isn't in progress returns 409
+- [x] pytest: an approval of $1,000.00 pays (200); an approval of $1,000.01 is refused (403) and `paid_amount` stays null
+- [x] pytest: a claim approved for $3,750, paid $999, returns 403, so splitting a payment can't get round the limit
+- [x] pytest: a claim approved for $400, paid $500, returns 409
+- [x] pytest: paying before a decision, or twice, returns 409
+- [x] pytest: sign-off moves `waiting_for_sign_off` to `decided`, sets `paid_amount` to the payout and `signed_off_by` to the handler; sign-off in any other status returns 409; an unknown handler returns 404
+- [x] pytest: steps come back in the order they were posted
+- [x] curl walk-through on CLM-1003: start, approve $3,750, pay $3,750 returns 403 with `{"detail": "Payouts over $1,000.00 need a handler's sign-off"}`, sign off as HND-01, then `GET` shows `decided`, `paid_amount` 3750 and `signed_off_by` HND-01. Reseed afterwards
+- [x] `npm run check:python` passes
 
 ## Phase 3: The UnderCover Agent
 
