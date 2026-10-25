@@ -17,9 +17,12 @@ We want an AI agent, the UnderCover Agent, to work the queue the way a handler d
 
 Our goal is to handle claims straight through, as accurately as our handlers do.
 
+One run of the agent works the whole queue and finishes with a short summary for the handlers. For trials, a run can be capped at a number of claims, with the rest left waiting, and the agent can be run on one named claim.
+
 ## What the team needs to see
 
-- The queue, with where each claim stands: waiting, in progress, waiting for sign-off or decided.
+- The queue, with where each claim stands: waiting, in progress, waiting for sign-off, decided or left for a handler.
+- The agent's to-do list for the current run, as it works, and its summary when it finishes.
 - Each claim in full, with the agent's decision, its reasons and the sections it read.
 - What the agent is doing on a claim while it works, step by step.
 - The agent's instructions, read only.
@@ -28,6 +31,7 @@ Our goal is to handle claims straight through, as accurately as our handlers do.
 
 - A payout over $1,000 needs a handler's sign-off. The agent can approve such a claim, but the payment waits until a handler signs off. The system must block the payment until then, even if the agent tries to pay.
 - Decisions follow the policy wording first, and the claims manual where the wording leaves things open.
+- One claim's problems never stop a run. A claim that fails before it is decided goes back in the queue to be tried again, and a claim that fails twice is left for a handler. No claim is ever decided or paid twice.
 - Our handlers' own decisions on these claims are in `data/evals/`. We use them to check the agent's work. The agent must never see them.
 - Amounts are in US dollars.
 

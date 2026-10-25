@@ -344,10 +344,10 @@ Draft of `backend/instructions/claim.md`:
 - [ ] Every claim the run decided has at least one `read_section` step. This is a spot check of the model's behavior, not a code guarantee: if it fails, read the steps, and change the instructions only for a reason that holds across claims
 - [ ] Every approval over $1,000 is waiting for sign-off and unpaid; every other approval is paid exactly its payout
 - [ ] `npm run check` passes, and the worked queue is unchanged afterwards
-- [ ] `docs/SPEC.md`, `docs/TECH_STACK.md` and `docs/STATUS.md` match the build
+- [x] `docs/SPEC.md`, `docs/TECH_STACK.md` and `docs/STATUS.md` match the build
 - [ ] Report: the five lines, the summary, the cost and the time
 
-> The pilot's real-model checks were blocked by a Netskope proxy policy on the build machine. Before this phase, send one chat request to OpenRouter. If it is still blocked, the live criteria stay unticked with a note, and the docs and `npm run check` are still done.
+> Not checked yet: the probe before this phase, one chat request to OpenRouter with `SSL_CERT_FILE` set, still returned the Netskope proxy's 403 justification page, so no real model could run. The stub-model tests cover the same paths. `npm run check` passes, and it left the dev database byte-for-byte unchanged. To run the trial once OpenRouter is allowed: `npm run dev`, then `uv run -m backend.seed` and `SSL_CERT_FILE="$CURL_CA_BUNDLE" uv run -m agent --cap 5`.
 
 ## Not in this plan
 

@@ -1,10 +1,10 @@
 # Status
 
-The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` is in progress: Phases 1 to 5 are done. Reseed after pulling it (`uv run -m backend.seed`): the database schema changed. Not yet done: the pilot's checks on a real model, because a Netskope proxy policy on the build machine blocks OpenRouter chat requests.
+The pilot from `docs/PLAN.md` and the harness from `docs/PLAN_HARNESS.md` are built. Reseed after pulling the harness (`uv run -m backend.seed`): the database schema changed. Not yet done: every check on a real model (the pilot's, and the harness's five-claim trial), because a Netskope proxy policy on the build machine blocks OpenRouter chat requests.
 
 ## Built
 
-- `backend/`: FastAPI on SQLite, with routes in `claims.py` and `documents.py` under one `/api` prefix (`backend/undercover.db`, or `UNDERCOVER_DB`), seeded from `data/` on its first start.
+- `backend/`: FastAPI on SQLite, with routes in `claims.py`, `documents.py` and `runs.py` under one `/api` prefix (`backend/undercover.db`, or `UNDERCOVER_DB`), seeded from `data/` on its first start.
   - Reads: claims, policies, a customer's claim history (no contact details), handlers, and the agent's instructions (`backend/instructions/`, with the payout limit filled in).
   - Documents: the policy wording and the claims manual, listed and read one section at a time. Only those two files can be read.
   - Runs: a run has a cap, a to-do list and a summary. A claim starts only in a running run, within its cap. Starting a run stops the one before and releases its claims in progress.
@@ -32,6 +32,11 @@ The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` 
 | `uv run -m backend.seed` | Resets the queue; a decided claim is final until then |
 | `npm run check` | Every check |
 
+Behind a proxy that inspects TLS, point `SSL_CERT_FILE` at the proxy's certificate bundle when you run the agent, so Python trusts it.
+
 ## Known limits
 
 - With no sign-in, the API can't tell callers apart. The $1,000 block holds against the agent because it has no sign-off tool.
+- One run at a time: starting a run stops the one before and releases its claims. A run whose process was killed shows Running until the next run starts.
+- A claim decided but whose payment failed stays decided and unpaid; it is never retried.
+- A claim left for a handler can't yet be decided in the dashboard; reseed to reset it.
