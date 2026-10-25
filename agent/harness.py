@@ -8,14 +8,18 @@ from typing import Any
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
     AgentMiddleware,
+    AgentState,
     ToolCallRequest,
     ToolErrorMiddleware,
+    after_model,
 )
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import BaseTool
 from langchain_openai import ChatOpenAI
 from langgraph.graph.state import CompiledStateGraph
+from langgraph.runtime import Runtime
 from pydantic import SecretStr
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
@@ -44,6 +48,28 @@ def refusals(refused: type[Exception]) -> ToolErrorMiddleware:
         return str(error) if isinstance(error, refused) else None
 
     return ToolErrorMiddleware(tell_model)
+
+
+def finish_check(
+    reminder: Callable[[Any], str | None], reminders: int = 2
+) -> AgentMiddleware[Any, Any]:
+    """Send the agent back when it tries to finish and reminder(context) has work
+    for it, at most `reminders` times."""
+    sent = 0
+
+    @after_model(can_jump_to=["model"])
+    def check(state: AgentState[Any], runtime: Runtime[Any]) -> dict[str, Any] | None:
+        nonlocal sent
+        last = state["messages"][-1]
+        if not isinstance(last, AIMessage) or last.tool_calls or sent == reminders:
+            return None
+        text = reminder(runtime.context)
+        if text is None:
+            return None
+        sent += 1
+        return {"messages": [HumanMessage(text)], "jump_to": "model"}
+
+    return check
 
 
 def create(
@@ -86,17 +112,22 @@ def steps(message: BaseMessage) -> list[Step]:
     ]
 
 
+def config(thread_id: str, step_limit: int) -> RunnableConfig:
+    """Configure one run of an agent: its thread and its limit on graph steps."""
+    return {"configurable": {"thread_id": thread_id}, "recursion_limit": step_limit}
+
+
 def run(
     agent: CompiledStateGraph[Any, Any, Any, Any],
     prompt: str,
     context: object,
-    thread_id: str,
+    settings: RunnableConfig,
     record: Callable[[Step], object],
 ) -> str:
     """Run an agent from a fresh history, recording each step, and return its reply."""
     updates = agent.stream(
         {"messages": [{"role": "user", "content": prompt}]},
-        config={"configurable": {"thread_id": thread_id}},
+        config=settings,
         context=context,
         stream_mode="updates",
     )

@@ -1,6 +1,6 @@
 # Status
 
-The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` is in progress: Phases 1 to 3 are done. Reseed after pulling it (`uv run -m backend.seed`): the database schema changed. Not yet done: the pilot's checks on a real model, because a Netskope proxy policy on the build machine blocks OpenRouter chat requests.
+The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` is in progress: Phases 1 to 4 are done. Reseed after pulling it (`uv run -m backend.seed`): the database schema changed. Not yet done: the pilot's checks on a real model, because a Netskope proxy policy on the build machine blocks OpenRouter chat requests.
 
 ## Built
 
@@ -12,7 +12,9 @@ The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` 
   - The payment route never pays over the limit; a handler's sign-off pays those.
 - `agent/`: the UnderCover Agent on `create_agent`, DeepSeek V4.1 Flash at low reasoning effort by default (`MODEL_NAME` overrides).
   - `api.py`: every call to the backend, with its URL in one place. `tools.py`: every tool, reading the claim from `ToolRuntime` context. `harness.py`: the model, building agents, streaming steps. `__main__.py`: the CLI.
-  - `run_claim` starts the claim, takes its system prompt from the API, and posts every tool call, result and reply as a step. Seven tools: `get_claim`, `get_policy`, `get_claim_history`, `list_sections`, `read_section`, `record_decision`, `pay_claim`; none signs off.
+  - The queue agent works the queue in one run: it keeps a to-do list (`write_todos`), chooses the order (`get_queue`) and hands each claim to `work_claim`, then ends with a summary for the handlers. Before it finishes, a finish check reminds it, at most twice, of claims it can still take.
+  - `work_claim` starts the claim and has a fresh claim agent decide it, posting every tool call, result and reply as a step on the claim. Whatever ends the claim agent (an error, its 50-step limit, no decision), a claim left in progress is released. It reports one line from the claim's record.
+  - The claim agent's seven tools: `get_claim`, `get_policy`, `get_claim_history`, `list_sections`, `read_section`, `record_decision`, `pay_claim`; none signs off.
 - `dashboard/`: React on Vite, in UnderCover's brand, light and dark.
   - `#/`: the queue, with a count per status, refreshed every 2 s.
   - `#/claims/<id>`: the claim in full with its policy and claim history, the decision and its reasons, the sections the agent read, its steps as they happen, and sign-off.
@@ -24,8 +26,9 @@ The pilot from `docs/PLAN.md` is built. The harness from `docs/PLAN_HARNESS.md` 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Backend on port 8000, dashboard on http://localhost:5173 |
-| `uv run -m agent` | Works every waiting claim, with `npm run dev` up |
-| `uv run -m agent CLM-1001` | Works one claim |
+| `uv run -m agent` | One run of the queue agent over the whole queue, with `npm run dev` up |
+| `uv run -m agent --cap 5` | One run that takes at most five claims; the rest stay waiting |
+| `uv run -m agent CLM-1001` | Works the named claims once each, without the queue agent |
 | `uv run -m backend.seed` | Resets the queue; a decided claim is final until then |
 | `npm run check` | Every check |
 

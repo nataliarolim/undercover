@@ -1,18 +1,55 @@
-"""Every tool the UnderCover Agent has, and the claim agent that uses them."""
+"""Every tool the UnderCover Agent has, and the claim agent behind work_claim."""
 
 import json
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal, TypedDict
 
 from langchain.tools import ToolRuntime, tool
 from langchain_core.language_models import BaseChatModel
 
 from agent import api, harness
 
+CLAIM_STEP_LIMIT = 50
+
+
+@dataclass(frozen=True)
+class RunContext:
+    run_id: int
+    model: BaseChatModel
+
 
 @dataclass(frozen=True)
 class ClaimContext:
     claim_id: str
+
+
+class Todo(TypedDict):
+    content: str
+    status: Literal["to_do", "in_progress", "done", "left_for_handler"]
+
+
+@tool
+def get_queue(runtime: ToolRuntime[RunContext]) -> str:
+    """List the waiting claims this run can still take."""
+    return json.dumps(api.get_queue(runtime.context.run_id))
+
+
+@tool
+def write_todos(todos: list[Todo], runtime: ToolRuntime[RunContext]) -> str:
+    """Replace your to-do list, which the team watches on the dashboard. Each item's
+    status is to_do, in_progress, done or left_for_handler."""
+    api.update_todos(runtime.context.run_id, todos)
+    return "The to-do list is saved."
+
+
+@tool
+def work_claim(claim_id: str, runtime: ToolRuntime[RunContext]) -> str:
+    """Hand one claim to a claims handler who starts fresh. Returns one line: the
+    decision and payout, or what went wrong."""
+    return work(runtime.context.run_id, claim_id, runtime.context.model)
+
+
+QUEUE_TOOLS = [get_queue, write_todos, work_claim]
 
 
 @tool
@@ -89,15 +126,49 @@ CLAIM_TOOLS = [
 REFUSALS = harness.refusals(api.Refused)
 
 
-def run_claim(claim_id: str, run_id: int, thread_id: str, llm: BaseChatModel) -> str:
-    """Start a claim and have a claim agent decide it, posting each step."""
-    api.start_claim(claim_id, run_id)
+def outcome(claim: dict[str, Any]) -> str:
+    """Describe where a claim stands after its claim agent, in one line."""
+    claim_id, status = claim["claim_id"], claim["status"]
+    if status == "waiting":
+        return (
+            f"{claim_id} failed: {claim['error']}. "
+            f"Back in the queue after attempt {claim['attempts']}"
+        )
+    if status == "left_for_handler":
+        return (
+            f"{claim_id} failed: {claim['error']}. "
+            f"Left for a handler after {claim['attempts']} attempts"
+        )
+    if claim["decision"] != "approve":
+        return f"{claim_id} {claim['decision']}"
+    if status == "waiting_for_sign_off":
+        payment = "waiting for sign-off"
+    else:
+        payment = "not paid" if claim["paid_amount"] is None else "paid"
+    return f"{claim_id} approve ${claim['payout']:,.2f}, {payment}"
+
+
+def work(run_id: int, claim_id: str, llm: BaseChatModel) -> str:
+    """Have a fresh claim agent decide a claim, and describe the outcome in a line.
+
+    However the claim agent ends, a claim it left in progress is released.
+    """
+    attempt = api.start_claim(claim_id, run_id)["attempts"]
     instructions = api.get_instructions()["claim"]
     agent = harness.create(llm, CLAIM_TOOLS, instructions, ClaimContext, [REFUSALS])
-    return harness.run(
-        agent,
-        f"Decide claim {claim_id}.",
-        ClaimContext(claim_id),
-        thread_id,
-        lambda step: api.add_step(claim_id, step),
-    )
+    error = "The agent finished without a decision"
+    try:
+        harness.run(
+            agent,
+            f"Decide claim {claim_id}.",
+            ClaimContext(claim_id),
+            harness.config(f"{run_id}-{claim_id}-{attempt}", CLAIM_STEP_LIMIT),
+            lambda step: api.add_step(claim_id, step),
+        )
+    except Exception as failure:
+        # One claim's failure, whatever it is, must never stop the run.
+        error = f"{type(failure).__name__}: {failure}"[:300]
+    claim = api.get_claim(claim_id)
+    if claim["status"] == "in_progress":
+        claim = api.release_claim(claim_id, error)
+    return outcome(claim)

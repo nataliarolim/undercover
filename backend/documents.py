@@ -61,5 +61,5 @@ def read_section(document: DocumentName, section: int) -> Section:
 
 @router.get("/instructions", operation_id="get_instructions")
 def get_instructions() -> Instructions:
-    """Get the agent's instructions for working a claim."""
-    return Instructions(claim=instructions("claim"))
+    """Get the agent's instructions for running the queue and for working a claim."""
+    return Instructions(queue=instructions("queue"), claim=instructions("claim"))

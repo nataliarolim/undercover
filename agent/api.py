@@ -65,6 +65,16 @@ def start_run(cap: int) -> dict[str, Any]:
     return call("POST", "/runs", {"cap": cap})
 
 
+def get_queue(run_id: int) -> list[dict[str, Any]]:
+    """List the waiting claims a run can still take."""
+    return call("GET", f"/runs/{run_id}/queue")
+
+
+def update_todos(run_id: int, todos: list[Any]) -> dict[str, Any]:
+    """Replace a run's to-do list."""
+    return call("PUT", f"/runs/{run_id}/todos", {"todos": todos})
+
+
 def finish_run(run_id: int, summary: str) -> dict[str, Any]:
     """Finish a run with its summary for the handlers."""
     return call("POST", f"/runs/{run_id}/finish", {"summary": summary})
@@ -83,6 +93,11 @@ def add_step(claim_id: str, step: dict[str, str]) -> dict[str, Any]:
 def record_decision(claim_id: str, decision: dict[str, Any]) -> dict[str, Any]:
     """Record the decision on a claim."""
     return call("POST", f"/claims/{claim_id}/decision", decision)
+
+
+def release_claim(claim_id: str, error: str) -> dict[str, Any]:
+    """Release a claim that failed in progress."""
+    return call("POST", f"/claims/{claim_id}/release", {"error": error})
 
 
 def pay_claim(claim_id: str, amount: float) -> dict[str, Any]:

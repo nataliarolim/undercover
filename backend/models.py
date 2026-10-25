@@ -108,6 +108,7 @@ class Section(SectionHeading):
 
 
 class Instructions(BaseModel):
+    queue: str
     claim: str
 
 

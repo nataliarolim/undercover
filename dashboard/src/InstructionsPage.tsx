@@ -10,6 +10,10 @@ export function InstructionsPage() {
     <>
       <h1>Agent instructions</h1>
       <p className="muted">What the UnderCover Agent is told. Read only.</p>
+      <section className="panel" aria-label="Running the queue">
+        <h2>Running the queue</h2>
+        <pre className="instructions">{data.queue}</pre>
+      </section>
       <section className="panel" aria-label="Working a claim">
         <h2>Working a claim</h2>
         <pre className="instructions">{data.claim}</pre>

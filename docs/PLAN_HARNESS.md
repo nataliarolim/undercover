@@ -297,20 +297,20 @@ Draft of `backend/instructions/claim.md`:
 
 **Why now:** the backend's guarantees and the claim agent are both in place.
 
-- [ ] Stub-model test, **one run works the queue**: the queue model writes a to-do list, works two claims and ends with a summary; both claims are decided, and the run is finished with that summary and the list
-- [ ] Stub-model test, **the cap on a run**: with `--cap 2`, a third `work_claim` gets the refusal as text, and the other claims stay waiting
-- [ ] Stub-model test, **a failed claim that does not stop the run**: the claim model raises a timeout on CLM-1001; the run goes on and decides CLM-1002; CLM-1001 is waiting with the error, and its steps up to the failure are on it
-- [ ] Stub-model test, **a failed claim going back in the queue and being tried again**: a second `work_claim` on CLM-1001 decides it, with 2 attempts
-- [ ] Stub-model test, **a claim that fails twice left for a handler**: two failures leave it `left_for_handler`, the line says so, and the run still finishes
-- [ ] Stub-model test: a claim model that stops without a decision is released like an error, and one that loops past 50 steps is released too
-- [ ] Stub-model test, **the check for missed claims**: the queue model tries to finish while `get_queue` still has a claim; its next prompt holds a reminder naming it; it works the claim and finishes. A model that keeps trying to finish stops after two reminders
-- [ ] Test: every claim agent's first prompt is the system prompt and "Decide claim X." only, whatever came before
-- [ ] Test: the queue agent's tools are exactly `get_queue`, `write_todos`, `work_claim`; the claim agent's are the seven above; none signs off
-- [ ] Test: `--cap 5` starts a run with a cap of 5; named claims skip the queue agent and print one line each
-- [ ] pytest: `GET /api/instructions` has `queue` and `claim`, neither with numbered lines
-- [ ] e2e: the instructions page shows "Running the queue" and "Working a claim"
-- [ ] Phase 1's grep criteria still hold
-- [ ] `npm run check` passes
+- [x] Stub-model test, **one run works the queue**: the queue model writes a to-do list, works two claims and ends with a summary; both claims are decided, and the run is finished with that summary and the list
+- [x] Stub-model test, **the cap on a run**: with `--cap 2`, a third `work_claim` gets the refusal as text, and the other claims stay waiting
+- [x] Stub-model test, **a failed claim that does not stop the run**: the claim model raises a timeout on CLM-1001; the run goes on and decides CLM-1002; CLM-1001 is waiting with the error, and its steps up to the failure are on it
+- [x] Stub-model test, **a failed claim going back in the queue and being tried again**: a second `work_claim` on CLM-1001 decides it, with 2 attempts
+- [x] Stub-model test, **a claim that fails twice left for a handler**: two failures leave it `left_for_handler`, the line says so, and the run still finishes
+- [x] Stub-model test: a claim model that stops without a decision is released like an error, and one that loops past 50 steps is released too
+- [x] Stub-model test, **the check for missed claims**: the queue model tries to finish while `get_queue` still has a claim; its next prompt holds a reminder naming it; it works the claim and finishes. A model that keeps trying to finish stops after two reminders
+- [x] Test: every claim agent's first prompt is the system prompt and "Decide claim X." only, whatever came before
+- [x] Test: the queue agent's tools are exactly `get_queue`, `write_todos`, `work_claim`; the claim agent's are the seven above; none signs off
+- [x] Test: `--cap 5` starts a run with a cap of 5; named claims skip the queue agent and print one line each
+- [x] pytest: `GET /api/instructions` has `queue` and `claim`, neither with numbered lines
+- [x] e2e: the instructions page shows "Running the queue" and "Working a claim"
+- [x] Phase 1's grep criteria still hold
+- [x] `npm run check` passes
 
 ## Phase 5: The run on the dashboard
 

@@ -37,4 +37,11 @@ def test_claim_instructions_give_a_goal_without_the_wording(client):
     assert claim.startswith("You are a claims handler at UnderCover")
     assert "Pay an approval of $1,000.00 or less" in claim
     assert "## 1. Your plan" not in claim
-    assert re.search(r"^\d+\.", claim, re.MULTILINE) is None
+
+
+def test_both_instructions_give_a_goal_not_steps(client):
+    instructions = client.get("/api/instructions").json()
+    assert instructions["queue"].startswith("You are the UnderCover Agent")
+    for text in instructions.values():
+        assert "Your goal" in text or "Decide the claim" in text
+        assert re.search(r"^\d+\.", text, re.MULTILINE) is None

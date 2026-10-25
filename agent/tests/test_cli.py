@@ -4,50 +4,36 @@ import runpy
 import pytest
 
 from agent import __main__ as cli
-from agent import harness, tools
-from backend.tests.conftest import new_run
+from agent import harness
+from agent.tests.conftest import decides, stub
 
 
-@pytest.fixture(autouse=True)
-def no_model(monkeypatch):
-    monkeypatch.setattr(harness, "model", lambda: None)
-
-
-def test_works_only_waiting_claims(api, monkeypatch, capsys):
-    api.post("/api/claims/CLM-1001/start", json={"run_id": new_run(api)})
-    runs = []
-    monkeypatch.setattr(
-        tools,
-        "run_claim",
-        lambda claim_id, run_id, thread_id, llm: runs.append(thread_id),
-    )
-    cli.main([])
-    assert len(runs) == 24
-    assert len(set(runs)) == 24
-    lines = capsys.readouterr().out.splitlines()
-    assert lines[0] == "CLM-1002 waiting with no decision"
-    assert not any(line.startswith("CLM-1001") for line in lines)
-
-
-def test_works_the_named_claims(api, monkeypatch, capsys):
-    def decide(claim_id, run_id, thread_id, llm):
-        api.post(f"/api/claims/{claim_id}/start", json={"run_id": run_id})
-        api.post(
-            f"/api/claims/{claim_id}/decision",
-            json={
-                "decision": "approve",
-                "payout": 3750,
-                "rationale": "Covered.",
-                "policy_section": "Section 7, Emergency Medical",
-            },
-        )
-
-    monkeypatch.setattr(tools, "run_claim", decide)
+def test_named_claims_skip_the_queue_agent(api, monkeypatch, capsys):
+    monkeypatch.setattr(harness, "model", lambda: stub(*decides("approve", 3750)))
     monkeypatch.setattr("sys.argv", ["agent", "CLM-1003"])
     runpy.run_path(inspect.getfile(cli), run_name="__main__")
-    assert capsys.readouterr().out == (
-        "CLM-1003 waiting_for_sign_off approve $3,750.00\n"
-    )
+    line = "CLM-1003 approve $3,750.00, waiting for sign-off"
+    assert capsys.readouterr().out == f"{line}\n"
     run = api.get("/api/runs/latest").json()
-    assert (run["cap"], run["status"]) == (1, "finished")
-    assert run["summary"] == "CLM-1003 waiting_for_sign_off approve $3,750.00"
+    assert (run["cap"], run["status"], run["summary"]) == (1, "finished", line)
+
+
+def test_a_named_claim_that_is_not_waiting_is_not_started(api, monkeypatch, capsys):
+    monkeypatch.setattr(harness, "model", lambda: stub(*decides("approve", 3750)))
+    cli.main(["CLM-1003"])
+    cli.main(["CLM-1003"])
+    assert capsys.readouterr().out.splitlines()[1] == (
+        'CLM-1003 not started: {"detail":"Claim CLM-1003 is not waiting"}'
+    )
+
+
+@pytest.mark.parametrize(("argv", "cap"), [(["--cap", "5"], 5), ([], None)])
+def test_the_queue_runs_with_its_cap(monkeypatch, capsys, argv, cap):
+    runs = []
+    monkeypatch.setattr(harness, "model", lambda: "model")
+    monkeypatch.setattr(
+        cli, "work_queue", lambda *args: runs.append(args) or "Summary."
+    )
+    cli.main(argv)
+    assert runs == [(cap, "model", "model")]
+    assert capsys.readouterr().out == "Summary.\n"
