@@ -189,13 +189,13 @@ Draft of `backend/instructions.md`, built on Day 2's:
 
 **Why now:** the shell and brand come first so the claim page drops into them.
 
-- [ ] vitest: the queue renders rows and counts from a stubbed fetch, money as `$1,250.00`, statuses in the spec's words
-- [ ] e2e: the queue shows 25 rows, CLM-1001 shows Waiting, and clicking it changes the URL to `#/claims/CLM-1001` (the page itself comes in Phase 5)
-- [ ] e2e: the instructions page shows the instructions and the policy wording
-- [ ] Isolation: with `npm run dev` up and CLM-1005 started by curl, `npm run e2e` passes, CLM-1005 is still in progress on port 8000 afterwards, and `git status` is clean. Reseed afterwards
-- [ ] Playwright MCP on localhost:5173, light and dark (emulated), screenshot each: Instrument Sans for text, JetBrains Mono for ids and amounts, rounded panels with no outline, no one-edge borders
-- [ ] Playwright MCP: start CLM-1002 by curl; within 3 s the queue shows it In progress with no reload. Reseed afterwards
-- [ ] `npm run check:ts` and `npm run e2e` pass
+- [x] vitest: the queue renders rows and counts from a stubbed fetch, money as `$1,250.00`, statuses in the spec's words
+- [x] e2e: the queue shows 25 rows, CLM-1001 shows Waiting, and clicking it changes the URL to `#/claims/CLM-1001` (the page itself comes in Phase 5)
+- [x] e2e: the instructions page shows the instructions and the policy wording
+- [x] Isolation: with `npm run dev` up and CLM-1005 started by curl, `npm run e2e` passes, CLM-1005 is still in progress on port 8000 afterwards, and `git status` is clean. Reseed afterwards
+- [x] Playwright MCP on localhost:5173, light and dark (emulated), screenshot each: Instrument Sans for text, JetBrains Mono for ids and amounts, rounded panels with no outline, no one-edge borders
+- [x] Playwright MCP: start CLM-1002 by curl; within 3 s the queue shows it In progress with no reload. Reseed afterwards
+- [x] `npm run check:ts` and `npm run e2e` pass
 
 ## Phase 5: Claim page, live steps and sign-off
 
