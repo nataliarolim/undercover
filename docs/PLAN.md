@@ -167,14 +167,14 @@ Draft of `backend/instructions.md`, built on Day 2's:
 
 **Why now:** the API it drives is complete and tested.
 
-- [ ] Stub-model test: an approval up to $1,000 leaves the claim `decided` and paid exactly its payout, with a step for every tool call, result and the final reply
-- [ ] Stub-model test: an approval over $1,000 followed by a payment attempt gets the 403 text back as the tool result, with no exception; the claim is `waiting_for_sign_off` and unpaid
-- [ ] Stub-model test: the system prompt the model receives equals `GET /api/instructions`
-- [ ] Test: the agent's tools are exactly the five above
-- [ ] Test: the CLI works only claims that are `waiting`
-- [ ] `grep -rnE "open\(|read_text|data/" agent --include=*.py` prints nothing outside `agent/tests/`
+- [x] Stub-model test: an approval up to $1,000 leaves the claim `decided` and paid exactly its payout, with a step for every tool call, result and the final reply
+- [x] Stub-model test: an approval over $1,000 followed by a payment attempt gets the 403 text back as the tool result, with no exception; the claim is `waiting_for_sign_off` and unpaid
+- [x] Stub-model test: the system prompt the model receives equals `GET /api/instructions`
+- [x] Test: the agent's tools are exactly the five above
+- [x] Test: the CLI works only claims that are `waiting`
+- [x] `grep -rnE "open\(|read_text|data/" agent --include=*.py` prints nothing outside `agent/tests/`
 - [ ] Real model, one claim, under $0.01: with `npm run dev` up, `uv run -m backend.seed` then `uv run -m agent CLM-1001` prints `CLM-1001 decided approve $420.00`. That's the wording's answer: a 19-hour delay on Premium (6-hour waiting period) caused by crew, $420 of receipts under the $800 maximum, no deductible on Trip Delay. `curl localhost:8000/api/claims/CLM-1001/steps` lists the run. Reseed afterwards. This is a spot check, not a threshold: if the model disagrees, read its rationale and steps, and change the instructions only for a reason that holds across claims, never rerunning until it matches
-- [ ] `npm run check:python` passes
+- [x] `npm run check:python` passes
 
 ## Phase 4: Dashboard shell, queue and instructions
 

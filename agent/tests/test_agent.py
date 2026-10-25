@@ -1,35 +1,83 @@
-from fastapi.testclient import TestClient
-from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, SystemMessage
 
 from agent import main
-from backend.main import app
+from agent.tests.conftest import calls, stub
+
+DECISION = {"rationale": "Covered.", "policy_section": "Section 3, Trip Delay"}
 
 
-class StubModel(GenericFakeChatModel):
-    """A chat model that gives scripted replies in place of a real model."""
-
-    def bind_tools(self, tools, **kwargs):
-        return self
-
-
-def test_check_backend(monkeypatch):
-    monkeypatch.setattr(main, "backend", lambda: TestClient(app))
-    assert main.check_backend.invoke({}) == "ok"
-
-
-def test_run(monkeypatch):
-    monkeypatch.setattr(main, "backend", lambda: TestClient(app))
-    replies = [
-        AIMessage(
-            content="", tool_calls=[{"name": "check_backend", "args": {}, "id": "1"}]
+def test_approval_within_the_limit_is_paid(api):
+    llm = stub(
+        calls(("get_claim", {})),
+        calls(
+            ("get_policy", {"policy_id": "POL-2001"}),
+            ("get_claim_history", {"customer_id": "CUS-3001"}),
         ),
-        AIMessage(content="Hello! The backend is up."),
-    ]
-    assert (
-        main.run("CLM-1001", "thread-1", StubModel(messages=iter(replies)))
-        == "Hello! The backend is up."
+        calls(("record_decision", {"decision": "approve", "payout": 420} | DECISION)),
+        calls(("pay_claim", {"amount": 420})),
+        AIMessage(content="Approved and paid $420.00."),
     )
+    assert main.run("CLM-1001", "thread-1", llm) == "Approved and paid $420.00."
+
+    claim = api.get("/api/claims/CLM-1001").json()
+    assert claim["status"] == "decided"
+    assert claim["paid_amount"] == 420
+
+    steps = api.get("/api/claims/CLM-1001/steps").json()
+    kinds = [step["kind"] for step in steps]
+    assert kinds.count("tool_call") == kinds.count("tool_result") == 5
+    assert steps[0] == {
+        "step_id": steps[0]["step_id"],
+        "kind": "tool_call",
+        "name": "get_claim",
+        "content": "{}",
+    }
+    assert "My flight home from Rome" in steps[1]["content"]
+    assert steps[-1]["kind"] == "message"
+    assert steps[-1]["content"] == "Approved and paid $420.00."
+
+
+def test_payment_over_the_limit_is_refused(api):
+    llm = stub(
+        calls(("get_claim", {})),
+        calls(("record_decision", {"decision": "approve", "payout": 3750} | DECISION)),
+        calls(("pay_claim", {"amount": 3750})),
+        AIMessage(content="Approved; the payment waits for sign-off."),
+    )
+    main.run("CLM-1003", "thread-1", llm)
+
+    claim = api.get("/api/claims/CLM-1003").json()
+    assert claim["status"] == "waiting_for_sign_off"
+    assert claim["paid_amount"] is None
+    refusal = api.get("/api/claims/CLM-1003/steps").json()[-2]
+    assert refusal["name"] == "pay_claim"
+    assert "need a handler's sign-off" in refusal["content"]
+
+
+def test_system_prompt_comes_from_the_api(api):
+    llm = stub(AIMessage(content="Done."))
+    main.run("CLM-1001", "thread-1", llm)
+    system = llm.prompts[0][0]
+    assert isinstance(system, SystemMessage)
+    assert system.content == api.get("/api/instructions").json()["instructions"]
+
+
+def test_the_agent_has_five_tools_and_none_signs_off():
+    assert [tool.name for tool in main.make_tools("CLM-1001")] == [
+        "get_claim",
+        "get_policy",
+        "get_claim_history",
+        "record_decision",
+        "pay_claim",
+    ]
+
+
+def test_a_reply_with_text_and_tool_calls_makes_both_steps():
+    message = AIMessage(
+        content="Let me read it.",
+        tool_calls=[{"name": "get_claim", "args": {}, "id": "1"}],
+    )
+    assert [step["kind"] for step in main.steps(message)] == ["message", "tool_call"]
 
 
 def test_model_name(monkeypatch):
