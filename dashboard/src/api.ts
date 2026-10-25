@@ -90,7 +90,15 @@ export interface Step {
 }
 
 export interface Instructions {
-  instructions: string;
+  claim: string;
+}
+
+export type DocumentName = "policy_wording" | "claims_manual";
+
+export interface SectionRead {
+  document: DocumentName;
+  section: number;
+  title: string;
 }
 
 export const POLL_MS = 2000;

@@ -5,6 +5,7 @@ test("the instructions page shows the agent's instructions", async ({
 }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Instructions" }).click();
-  await expect(page.getByText(/You are the UnderCover Agent/)).toBeVisible();
-  await expect(page.getByText(/Version 2026\.1/)).toBeVisible();
+  const claim = page.getByRole("region", { name: "Working a claim" });
+  await expect(claim.getByText(/You are a claims handler/)).toBeVisible();
+  await expect(page.getByText(/Version 2026\.1/)).toHaveCount(0);
 });

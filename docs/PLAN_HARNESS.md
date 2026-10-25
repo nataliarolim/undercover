@@ -247,17 +247,17 @@ Draft of `backend/instructions/claim.md`:
 
 **Why now:** it changes only the claim agent, which the queue agent will hand claims to.
 
-- [ ] pytest: `GET /api/documents` lists 12 wording sections and 14 manual sections; manual section 7 has the topic "Wild animals" and wording section 8 has "Electronics Plus"
-- [ ] `curl localhost:8000/api/documents/claims_manual/sections/10` returns "Meals without receipts" and its text, including "$35 per traveler"
-- [ ] pytest: an unknown section returns 404, and `/api/documents/evals/sections/1` returns 422 with no content from `data/`
-- [ ] pytest: the `claim` instructions hold "$1,000.00", don't hold the wording's "## 1. Your plan", and have no numbered lines
-- [ ] Stub-model test: a claim agent that calls `list_sections` and `read_section("claims_manual", 7)` records both as steps, with the section's text as the result
-- [ ] vitest: the claim page lists "Claims manual, 7. Interpretation notes" under What the agent read
-- [ ] e2e: the instructions page shows "Working a claim" and not the policy wording (replaces the pilot's expectation)
-- [ ] e2e: with a claim page open, the test posts a `read_section` call and result as steps, and the section appears under What the agent read with no reload
-- [ ] `docs/SPEC.md` no longer lists the claims manual under "Not for now"
-- [ ] `grep -rln evals backend agent` prints nothing
-- [ ] `npm run check` passes
+- [x] pytest: `GET /api/documents` lists 12 wording sections and 14 manual sections; manual section 7 has the topic "Wild animals" and wording section 8 has "Electronics Plus"
+- [x] `curl localhost:8000/api/documents/claims_manual/sections/10` returns "Meals without receipts" and its text, including "$35 per traveler"
+- [x] pytest: an unknown section returns 404, and a document outside the two, such as `customers`, returns 422; `curl localhost:8000/api/documents/evals/sections/1` returns 422 with no content from `data/` (the tests avoid the word `evals`, so the grep below stays meaningful)
+- [x] pytest: the `claim` instructions hold "$1,000.00", don't hold the wording's "## 1. Your plan", and have no numbered lines
+- [x] Stub-model test: a claim agent that calls `list_sections` and `read_section("claims_manual", 7)` records both as steps, with the section's text as the result
+- [x] vitest: the claim page lists "Claims manual, 7. Interpretation notes" under What the agent read
+- [x] e2e: the instructions page shows "Working a claim" and not the policy wording (replaces the pilot's expectation)
+- [x] e2e: with a claim page open, the test posts a `read_section` call and result as steps, and the section appears under What the agent read with no reload
+- [x] `docs/SPEC.md` no longer lists the claims manual under "Not for now"
+- [x] `grep -rln evals backend agent` prints nothing
+- [x] `npm run check` passes
 
 ## Phase 3: Runs, the cap and recovery in the backend
 

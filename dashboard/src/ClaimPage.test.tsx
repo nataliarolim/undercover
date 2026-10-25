@@ -51,6 +51,9 @@ it("shows the claim in full, as the agent reads it", async () => {
   expect(panel("Documents").getByText("Hotel receipt")).toBeDefined();
   expect(panel("Decision").getByText("No decision yet.")).toBeDefined();
   expect(panel("Agent steps").getByText("No steps yet.")).toBeDefined();
+  expect(
+    panel("What the agent read").getByText("No sections read yet."),
+  ).toBeDefined();
 
   expect(await screen.findByText("Premium")).toBeDefined();
   expect(
@@ -104,6 +107,33 @@ it("shows the agent's steps while it works", async () => {
     screen.getByText("Payouts over $1,000.00 need a handler's sign-off"),
   ).toBeDefined();
   expect(screen.getByText("Approved; it waits for sign-off.")).toBeDefined();
+});
+
+it("lists the sections the agent read, once each", async () => {
+  const section = JSON.stringify({
+    document: "claims_manual",
+    section: 7,
+    title: "Interpretation notes",
+    topics: ["Wild animals"],
+    text: "These notes record how UnderCover reads the wording.",
+  });
+  const read = (step_id: number, content: string): Step => ({
+    step_id,
+    kind: "tool_result",
+    name: "read_section",
+    content,
+  });
+  stubClaim({ ...CLAIM, status: "in_progress" }, [
+    read(1, section),
+    read(2, section),
+    read(3, '{"detail":"There is no section 99 in policy_wording"}'),
+  ]);
+  render(<ClaimPage claimId="CLM-1001" />);
+
+  expect(
+    await screen.findByText("Claims manual, 7. Interpretation notes"),
+  ).toBeDefined();
+  expect(panel("What the agent read").getAllByRole("listitem")).toHaveLength(1);
 });
 
 it("signs off an approval over the limit, which pays it", async () => {

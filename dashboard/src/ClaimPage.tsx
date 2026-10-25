@@ -9,7 +9,7 @@ import {
 import { StatusBadge } from "./Badge";
 import { DecisionPanel } from "./DecisionPanel";
 import { day, dollars, label } from "./format";
-import { Steps } from "./Steps";
+import { SectionsRead, Steps } from "./Steps";
 
 function PolicyPanel({ policyId }: Readonly<{ policyId: string }>) {
   const { data: policy } = useApi<Policy>(paths.policy(policyId));
@@ -150,6 +150,7 @@ export function ClaimPage({ claimId }: Readonly<{ claimId: string }>) {
               steps.reload();
             }}
           />
+          <SectionsRead steps={steps.data ?? []} />
           <Steps
             steps={steps.data ?? []}
             working={data.status === "in_progress"}

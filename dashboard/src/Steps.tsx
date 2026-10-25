@@ -1,4 +1,5 @@
-import type { Step } from "./api";
+import type { SectionRead, Step } from "./api";
+import { DOCUMENT_LABELS } from "./format";
 
 /** The reason in a refusal from the backend, such as {"detail":"..."}. */
 function refusal(content: string): string | undefined {
@@ -34,6 +35,43 @@ function StepItem({ step }: Readonly<{ step: Step }>) {
       </summary>
       <pre className="result">{step.content}</pre>
     </details>
+  );
+}
+
+/** The sections the agent read, once each, from its read_section results. */
+function sectionsRead(steps: Step[]): SectionRead[] {
+  const read = new Map<string, SectionRead>();
+  for (const step of steps) {
+    if (
+      step.kind === "tool_result" &&
+      step.name === "read_section" &&
+      !refusal(step.content)
+    ) {
+      const section = JSON.parse(step.content) as SectionRead;
+      read.set(`${section.document} ${String(section.section)}`, section);
+    }
+  }
+  return [...read.values()];
+}
+
+export function SectionsRead({ steps }: Readonly<{ steps: Step[] }>) {
+  const read = sectionsRead(steps);
+  return (
+    <section className="panel" aria-label="What the agent read">
+      <h2>What the agent read</h2>
+      {read.length === 0 ? (
+        <p className="muted">No sections read yet.</p>
+      ) : (
+        <ul className="history">
+          {read.map((section) => (
+            <li key={`${section.document} ${String(section.section)}`}>
+              {DOCUMENT_LABELS[section.document]}, {section.section}.{" "}
+              {section.title}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

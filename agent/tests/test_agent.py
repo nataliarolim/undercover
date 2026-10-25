@@ -1,3 +1,5 @@
+import json
+
 from langchain_core.messages import AIMessage, SystemMessage
 
 from agent import harness, tools
@@ -59,17 +61,41 @@ def test_system_prompt_comes_from_the_api(api):
     tools.run_claim("CLM-1001", "thread-1", llm)
     system = llm.prompts[0][0]
     assert isinstance(system, SystemMessage)
-    assert system.content == api.get("/api/instructions").json()["instructions"]
+    assert system.content == api.get("/api/instructions").json()["claim"]
 
 
-def test_the_agent_has_five_tools_and_none_signs_off():
+def test_the_claim_agent_has_seven_tools_and_none_signs_off():
     assert [tool.name for tool in tools.CLAIM_TOOLS] == [
         "get_claim",
         "get_policy",
         "get_claim_history",
+        "list_sections",
+        "read_section",
         "record_decision",
         "pay_claim",
     ]
+
+
+def test_the_agent_reads_the_sections_it_needs(api):
+    llm = stub(
+        calls(("list_sections", {})),
+        calls(("read_section", {"document": "claims_manual", "section": 7})),
+        calls(("read_section", {"document": "policy_wording", "section": 99})),
+        AIMessage(content="Done."),
+    )
+    tools.run_claim("CLM-1001", "thread-1", llm)
+
+    steps = api.get("/api/claims/CLM-1001/steps").json()
+    assert [step["name"] for step in steps[:4]] == [
+        "list_sections",
+        "list_sections",
+        "read_section",
+        "read_section",
+    ]
+    assert "Interpretation notes" in steps[1]["content"]
+    assert json.loads(steps[3]["content"])["title"] == "Interpretation notes"
+    assert "Wild animals" in json.loads(steps[3]["content"])["text"]
+    assert "There is no section 99" in steps[5]["content"]
 
 
 def test_a_reply_with_text_and_tool_calls_makes_both_steps():

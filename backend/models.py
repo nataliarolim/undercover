@@ -88,8 +88,22 @@ class Handler(BaseModel):
     role: str
 
 
+DocumentName = Literal["policy_wording", "claims_manual"]
+
+
+class SectionHeading(BaseModel):
+    document: DocumentName
+    section: int
+    title: str
+    topics: list[str]
+
+
+class Section(SectionHeading):
+    text: str
+
+
 class Instructions(BaseModel):
-    instructions: str
+    claim: str
 
 
 class NewStep(BaseModel):

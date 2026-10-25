@@ -22,12 +22,13 @@ it("shows the queue by default", async () => {
 
 it("shows the agent's instructions, read only", async () => {
   stubApi({
-    "/api/instructions": { instructions: "You are the UnderCover Agent." },
+    "/api/instructions": { claim: "You are a claims handler." },
   });
   window.location.hash = "#/instructions";
   render(<App />);
+  expect(await screen.findByText("You are a claims handler.")).toBeDefined();
   expect(
-    await screen.findByText("You are the UnderCover Agent."),
+    screen.getByRole("heading", { name: "Working a claim" }),
   ).toBeDefined();
   expect(screen.queryByRole("textbox")).toBeNull();
 });

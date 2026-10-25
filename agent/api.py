@@ -45,6 +45,16 @@ def get_claim_history(customer_id: str) -> dict[str, Any]:
     return call("GET", f"/customers/{customer_id}/history")
 
 
+def list_sections() -> list[dict[str, Any]]:
+    """List the sections of the policy wording and the claims manual."""
+    return call("GET", "/documents")
+
+
+def read_section(document: str, section: int) -> dict[str, Any]:
+    """Read one section of the policy wording or the claims manual."""
+    return call("GET", f"/documents/{document}/sections/{section}")
+
+
 def get_instructions() -> dict[str, str]:
     """Get the agent's instructions."""
     return call("GET", "/instructions")

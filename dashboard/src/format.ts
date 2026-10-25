@@ -1,4 +1,4 @@
-import type { DecisionKind, Status } from "./api";
+import type { DecisionKind, DocumentName, Status } from "./api";
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -24,6 +24,11 @@ export const STATUS_LABELS: Record<Status, string> = {
   in_progress: "In progress",
   waiting_for_sign_off: "Waiting for sign-off",
   decided: "Decided",
+};
+
+export const DOCUMENT_LABELS: Record<DocumentName, string> = {
+  policy_wording: "Policy wording",
+  claims_manual: "Claims manual",
 };
 
 export const DECISION_LABELS: Record<DecisionKind, string> = {

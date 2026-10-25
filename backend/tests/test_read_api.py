@@ -49,13 +49,6 @@ def test_list_handlers(client):
     }
 
 
-def test_instructions_include_the_policy_wording(client):
-    instructions = client.get("/api/instructions").json()["instructions"]
-    assert instructions.startswith("You are the UnderCover Agent")
-    assert "Version 2026.1" in instructions
-    assert instructions.index("record_decision") < instructions.index("Policy Wording")
-
-
 @pytest.mark.parametrize(
     "path",
     [

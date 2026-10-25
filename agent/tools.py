@@ -34,6 +34,20 @@ def get_claim_history(customer_id: str) -> str:
 
 
 @tool
+def list_sections() -> str:
+    """List the sections of the wording and the manual, with the topics in each."""
+    return json.dumps(api.list_sections())
+
+
+@tool
+def read_section(
+    document: Literal["policy_wording", "claims_manual"], section: int
+) -> str:
+    """Read one section of the policy wording or the claims manual, by its number."""
+    return json.dumps(api.read_section(document, section))
+
+
+@tool
 def record_decision(
     decision: Literal["approve", "decline", "refer"],
     payout: float,
@@ -63,14 +77,22 @@ def pay_claim(amount: float, runtime: ToolRuntime[ClaimContext]) -> str:
     return json.dumps(api.pay_claim(runtime.context.claim_id, amount))
 
 
-CLAIM_TOOLS = [get_claim, get_policy, get_claim_history, record_decision, pay_claim]
+CLAIM_TOOLS = [
+    get_claim,
+    get_policy,
+    get_claim_history,
+    list_sections,
+    read_section,
+    record_decision,
+    pay_claim,
+]
 REFUSALS = harness.refusals(api.Refused)
 
 
 def run_claim(claim_id: str, thread_id: str, llm: BaseChatModel) -> str:
     """Start a claim and have a claim agent decide it, posting each step."""
     api.start_claim(claim_id)
-    instructions = api.get_instructions()["instructions"]
+    instructions = api.get_instructions()["claim"]
     agent = harness.create(llm, CLAIM_TOOLS, instructions, ClaimContext, [REFUSALS])
     return harness.run(
         agent,
